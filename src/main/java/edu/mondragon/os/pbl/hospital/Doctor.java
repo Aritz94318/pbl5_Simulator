@@ -1,6 +1,6 @@
 package edu.mondragon.os.pbl.hospital;
 
-public class    Doctor extends Thread {
+public class Doctor extends Thread {
 
     private int arrivalTime = 0;
     private Hospital hospital;
