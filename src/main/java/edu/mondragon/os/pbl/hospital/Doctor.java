@@ -1,6 +1,6 @@
 package edu.mondragon.os.pbl.hospital;
 
-public class    Doctor extends Thread {
+public class Doctor extends Thread {
 
     private int arrivalTime = 0;
     private Hospital hospital;
@@ -20,3 +20,8 @@ public class    Doctor extends Thread {
         }
     }
 }
+//Duerme
+//Diagnosis en espera(x)--> Doctor despierta
+//Escoge diagnosis por prioridad->Se comunica a paciente [estado de mamografía: siendo analizado]
+//Analiza la mamografia
+//Paciente recive aviso estado de mamografía: analizado

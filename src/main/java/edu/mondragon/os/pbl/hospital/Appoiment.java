@@ -1,14 +1,17 @@
 package edu.mondragon.os.pbl.hospital;
 
-public class Appoiment {
-    int appoiment_id;
-    public Appoiment(){
+public class Appoiment{
+    private int nextAppointmentNumber;
 
+    public Appoiment() {
+        nextAppointmentNumber = 1;
     }
-    public int getAppoiment(int id)
-    {
-        System.err.println("Patient "+id+" Take appoiment nº="+appoiment_id);
-        appoiment_id++;
-        return appoiment_id;
+
+    public synchronized int getAppoiment(int patientId) {
+        int givenNumber = nextAppointmentNumber;
+
+        nextAppointmentNumber++;
+        System.out.println("🧑 " + patientId + " has taken ticket #" + givenNumber);
+        return givenNumber;
     }
 }
