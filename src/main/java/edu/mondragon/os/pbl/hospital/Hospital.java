@@ -33,9 +33,6 @@ public class Hospital {
         waiting = 0;
     }
 
-    public void enterHospital(String name) throws InterruptedException {
-
-    }
 
     public void attendPatient(int patientId) throws InterruptedException // Este es el que esta unido al paciente
     {
@@ -64,47 +61,8 @@ public class Hospital {
         }
     }
 
-    public void beMachine(int machineId) throws InterruptedException {
-        mutex.lock();
-        try {
-            // Descansa y selecciona paciente
-                        waitingRoom.indicateNext();
+   
 
-            while (rest) {
-                System.out.println("Machine:" + machineId + " go to sleep");
-                machineRest.await();
-                System.out.println("Machine:" + machineId + " have awake");
-            }
-            while (machinePatient[machineId] == 0) {
-                machineWaitPatient.await();
-            }
-        } finally {
-            mutex.unlock();
-        }
-        Thread.sleep(rand.nextInt(10, 20));
-        System.out.println("🎛️  Machine:" + machineId + " Start making mamograph of patient:" + machinePatient[machineId]);
-
-        mutex.lock();
-        try {
-            
-            deletePatient(machineId);
-            patientWaiting.signalAll();
-            while (rest)
-            {
-                
-            }
-        } finally {
-            mutex.unlock();
-        }
-    }
-
-    public Boolean getRest() {
-        return rest;
-    }
-
-    public void setRest(boolean rest) {
-        this.rest = rest;
-    }
 
     public int setPatient(int patient) {
         int id;

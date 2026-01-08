@@ -3,13 +3,13 @@ package edu.mondragon.os.pbl.hospital;
 public class HospitalSystem {
     private Hospital hospital;
     private Diagnostic diagnostic;
-    private Appoiment appoiment;
+    private Appointment appointment;
     
-    public HospitalSystem(Appoiment appoiment, Hospital hospital, Diagnostic diagnostic) {
+    public HospitalSystem(Appointment appointment, Hospital hospital, Diagnostic diagnostic) {
         
         this.hospital = hospital;
         this.diagnostic=diagnostic;
-        this.appoiment=appoiment;
+        this.appointment=appointment;
     }
 
 
