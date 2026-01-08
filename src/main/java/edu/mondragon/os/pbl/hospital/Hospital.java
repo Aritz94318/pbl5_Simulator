@@ -86,8 +86,13 @@ public class Hospital {
 
         mutex.lock();
         try {
+            
             deletePatient(machineId);
             patientWaiting.signalAll();
+            while (rest)
+            {
+                
+            }
         } finally {
             mutex.unlock();
         }
