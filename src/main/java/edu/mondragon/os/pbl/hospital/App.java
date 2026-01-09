@@ -46,7 +46,7 @@ public class App {
         }
         appoiment = new Thread(new Appointment(apServer));
         waitingRoom = new Thread(new WaitingRoom(waServer));
-        //hospital = new Thread(new Hospital(waServer));
+        hospital = new Thread(new Hospital(hoServer,waServer));
     }
 
     public void startThreads() {
@@ -64,7 +64,7 @@ public class App {
         }
         appoiment.start();
         waitingRoom.start();
-        //hospital.start();
+        hospital.start();
 
     }
 

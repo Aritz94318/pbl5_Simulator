@@ -12,10 +12,9 @@ import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
 
 public class Machine extends Thread {
 
-    private int arrivalTime = 0;
+    private boolean stop = false;
     private int id;
     private Message reply;
-
     private BlockingQueue<HospitalMessage> hospital;
     private BlockingQueue<WaitingRoomMessage> waitinroom;
     private final BlockingQueue<Message> myMailbox;
@@ -25,7 +24,6 @@ public class Machine extends Thread {
         this.hospital = hospital;
         this.waitinroom = waitinroom;
         this.myMailbox = new LinkedBlockingQueue<>();
-        arrivalTime += 500 * id;
         this.id = id;
     }
 
@@ -44,23 +42,18 @@ public class Machine extends Thread {
 
     public void beMachine(int machineId) throws InterruptedException {
 
-
-        
-        System.out.println("hola");
-        waitinroom.put(new WaitingRoomMessage("NEXT_PATIENT", "" + id, myMailbox));
+        hospital.put(new HospitalMessage("FREE_MACHINE", "" + id, myMailbox));
         reply = myMailbox.take();
-        Thread.sleep(200);
 
-        /*
-        hospital.put(new HospitalMessage("WAITING_PATIENT", "" + id, myMailbox));
         reply = myMailbox.take();
 
         System.out.println("🎛️  Machine:" + machineId + " Start making mamograph of patient:" + reply.content);
-
+        Thread.sleep(150);
         hospital.put(new HospitalMessage("COMPLETED_PATIENT", "" + id, myMailbox));
-
-        reply = myMailbox.take();*/
-
+    
+        reply = myMailbox.take();
+        
+        
     }
 }
 

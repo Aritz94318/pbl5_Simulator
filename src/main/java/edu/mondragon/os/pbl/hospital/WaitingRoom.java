@@ -10,16 +10,16 @@ import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
 
 public class WaitingRoom implements Runnable {
     private int currentTurn;
+    private int freeMachines;
 
     private final Map<Integer, BlockingQueue<Message>> waiting = new HashMap<>();
     private final BlockingQueue<WaitingRoomMessage> mailbox;
-    private int waitingMachines;
-    private boolean list;
 
     public WaitingRoom(BlockingQueue<WaitingRoomMessage> mailbox) {
         this.mailbox = mailbox;
-        list = false;
         currentTurn = 0;
+        freeMachines = 0;
+
     }
 
     @Override
@@ -37,13 +37,14 @@ public class WaitingRoom implements Runnable {
                     releaseIfPossible();
                 }
                 if (msg.type.equals("NEXT_PATIENT")) {
-                        currentTurn++;
-                        System.out.println("HOYE");
-                        waitingMachines++;
-                        System.out.println("📢 Display calling turn #" + currentTurn);
-                }
+                    currentTurn++;
+                    freeMachines++;
 
-                releaseIfPossible();
+                    System.out.println("📢 Display calling turn #" + currentTurn);
+                }
+                if (freeMachines > 0) {
+                    releaseIfPossible();
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -51,11 +52,10 @@ public class WaitingRoom implements Runnable {
     }
 
     private void releaseIfPossible() throws InterruptedException {
-        BlockingQueue<Message> mb = waiting.remove(currentTurn);
+        BlockingQueue<Message> mb = waiting.remove(currentTurn - freeMachines + 1);
         if (mb != null) {
             mb.put(new Message("YOUR_TURN", "" + currentTurn, null));
-            waitingMachines--;
-   
+            freeMachines--;
         }
     }
 }

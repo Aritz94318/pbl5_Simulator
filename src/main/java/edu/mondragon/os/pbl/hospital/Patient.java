@@ -53,12 +53,9 @@ public class Patient extends Thread {
             // patient waits for her turn
             System.out.println(getName() + " waits in the waiting room.");
             waitingroom.put(new WaitingRoomMessage("WAIT", appoiment_id, myMailbox));
-            // waitingRoom.waitForTurn(Integer.parseInt(appoiment_id));
-            // hospital.attendPatient(Integer.parseInt(appoiment_id));
-            // System.out.println(getName() + "has finished the mamogram.");
+            reply = myMailbox.take();
+            attendPatient(id);
 
-            // Thread.sleep(arrivalTime);
-            // hospital.enterHospital(getName());
         } catch (InterruptedException e) {
         }
     }
@@ -66,13 +63,11 @@ public class Patient extends Thread {
     public void attendPatient(int patientId) throws InterruptedException // Este es el que esta unido al paciente
     {
         hospital.put(new HospitalMessage("WAITING", "" + id, myMailbox));
-        reply = myMailbox.take();
 
         System.out.println("Patient: " + patientId + "  Go to MACHINE=" + reply.content);
 
         hospital.put(new HospitalMessage("IS_READY", "" + id, myMailbox));
 
-        hospital.put(new HospitalMessage("COMPLETED_PATIENT", "" + id, myMailbox));
         reply = myMailbox.take();
 
         System.out.println("Patient:" + patientId + "Is leaving Hospital");
