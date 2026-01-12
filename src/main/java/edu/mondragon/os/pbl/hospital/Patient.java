@@ -1,11 +1,11 @@
 package edu.mondragon.os.pbl.hospital;
 
-import java.lang.reflect.Member;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import edu.mondragon.os.pbl.hospital.mailbox.AppointmentMessage;
+import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
@@ -15,6 +15,7 @@ public class Patient extends Thread {
     private BlockingQueue<AppointmentMessage> appoiment;
     private BlockingQueue<HospitalMessage> hospital;
     private BlockingQueue<WaitingRoomMessage> waitingroom;
+    private BlockingQueue<DiagnosticUnitMessage> diagnosticUnit;
 
     private final BlockingQueue<Message> myMailbox;
 
@@ -24,12 +25,13 @@ public class Patient extends Thread {
     private Message reply;
 
     public Patient(int id, BlockingQueue<AppointmentMessage> appoiment, BlockingQueue<HospitalMessage> hospital,
-            BlockingQueue<WaitingRoomMessage> waitingroom) {
+            BlockingQueue<WaitingRoomMessage> waitingroom, BlockingQueue<DiagnosticUnitMessage> diagnosticUnit) {
         super("Patient" + id);
         this.id = id;
         this.appoiment = appoiment;
         this.hospital = hospital;
         this.waitingroom = waitingroom;
+        this.diagnosticUnit = diagnosticUnit;
         this.myMailbox = new LinkedBlockingQueue<>();
 
         rand = new Random();
@@ -55,6 +57,7 @@ public class Patient extends Thread {
             waitingroom.put(new WaitingRoomMessage("WAIT", appoiment_id, myMailbox));
             reply = myMailbox.take();
             attendPatient(id);
+            doctorsDiagnostics(id);
 
         } catch (InterruptedException e) {
         }
@@ -63,6 +66,8 @@ public class Patient extends Thread {
     public void attendPatient(int patientId) throws InterruptedException // Este es el que esta unido al paciente
     {
         hospital.put(new HospitalMessage("WAITING", "" + id, myMailbox));
+
+        reply = myMailbox.take();
 
         System.out.println("Patient: " + patientId + "  Go to MACHINE=" + reply.content);
 
@@ -73,6 +78,17 @@ public class Patient extends Thread {
         System.out.println("Patient:" + patientId + "Is leaving Hospital");
 
         hospital.put(new HospitalMessage("PATIENT_GONE", "" + id, myMailbox));
+
+    }
+
+    public void doctorsDiagnostics(int id) throws InterruptedException {
+        diagnosticUnit.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "" + id, myMailbox));
+        diagnosticUnit.take();
+        System.out.println("Ha sido a nalizado por la IA y a pasado a manos de los expertos Paciente: " + id);
+        diagnosticUnit.take();
+        System.out.println("Ya paso a manos de un doctor espere asta que verfiquen Paciente:" + id);
+        diagnosticUnit.take();
+        System.out.println("Coja cita con su doctor Paciente:" + id);
 
     }
 }

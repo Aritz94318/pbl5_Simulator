@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-import edu.mondragon.os.pbl.hospital.mailbox.AppointmentMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
 

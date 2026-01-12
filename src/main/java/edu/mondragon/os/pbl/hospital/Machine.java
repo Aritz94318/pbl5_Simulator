@@ -3,26 +3,19 @@ package edu.mondragon.os.pbl.hospital;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import javax.print.DocFlavor.READER;
-
-import edu.mondragon.os.pbl.hospital.mailbox.AppointmentMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
-import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
 
 public class Machine extends Thread {
 
-    private boolean stop = false;
     private int id;
     private Message reply;
     private BlockingQueue<HospitalMessage> hospital;
-    private BlockingQueue<WaitingRoomMessage> waitinroom;
     private final BlockingQueue<Message> myMailbox;
 
-    public Machine(int id, BlockingQueue<HospitalMessage> hospital, BlockingQueue<WaitingRoomMessage> waitinroom) {
+    public Machine(int id, BlockingQueue<HospitalMessage> hospital) {
         super("Machine " + id);
         this.hospital = hospital;
-        this.waitinroom = waitinroom;
         this.myMailbox = new LinkedBlockingQueue<>();
         this.id = id;
     }
@@ -51,7 +44,7 @@ public class Machine extends Thread {
         Thread.sleep(150);
         hospital.put(new HospitalMessage("COMPLETED_PATIENT", "" + id, myMailbox));
     
-        reply = myMailbox.take();
+        //reply = myMailbox.take();
         
         
     }
