@@ -1,126 +1,115 @@
 package edu.mondragon.os.pbl.hospital;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
-import java.util.Random;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
+import edu.mondragon.os.pbl.hospital.mailbox.Message;
+import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
 
-public class Hospital {
+public class Hospital implements Runnable {
 
-    private Lock mutex;
-    private Condition machineRest;
-    private Condition machineWaitPatient;
-    private Condition patientWaiting;
+    private final Map<Integer, BlockingQueue<Message>> machineToPatient = new HashMap<>();
+    private final Map<Integer, BlockingQueue<Message>> freeMachine = new HashMap<>();
+    private final Map<Integer, BlockingQueue<Message>> patientToMachine = new HashMap<>();
+    private final Map<Integer, Integer> machine = new HashMap<>();
 
-    private boolean rest;
-    private int[] machinePatient;
-    private Random rand;
-    private WaitingRoom waitingRoom;
-    private int waiting;
+    private int numMachines;
 
+    private final BlockingQueue<HospitalMessage> mailbox;
+    private final BlockingQueue<WaitingRoomMessage> waitingmailbox;
+    private BlockingQueue<Message> mb;
     // private Diagnostic diagnotic;
 
-    public Hospital(WaitingRoom waitingRoom) {
-        mutex = new ReentrantLock();
-        machineRest = mutex.newCondition();
-        machineWaitPatient = mutex.newCondition();
-        patientWaiting=mutex.newCondition();
-        this.waitingRoom = waitingRoom;
-        rest = true;
-        rand = new Random();
-        machinePatient = new int[3];
-        waiting = 0;
+    public Hospital(BlockingQueue<HospitalMessage> mailbox, BlockingQueue<WaitingRoomMessage> waitingmailbox,
+            int numMachines) {
+        this.mailbox = mailbox;
+        this.waitingmailbox = waitingmailbox;
+        this.numMachines = numMachines;
     }
 
-    public void enterHospital(String name) throws InterruptedException {
-
-    }
-
-    public void attendPatient(int patientId) throws InterruptedException // Este es el que esta unido al paciente
-    {
-        int id;
-        mutex.lock();
+    @Override
+    public void run() {
         try {
-            waiting++;
-            if (waiting > 0) {
-                rest = false;
-                machineRest.signalAll();
+            while (true) {
+                HospitalMessage msg = mailbox.take(); // espera solicitudes
+                int data = Integer.parseInt(msg.content);
+                if (msg.type.equals("STOP")) {
+                    break;
+                }
+                switch (msg.type) {
+                    case "WAITING":
+                        int where = setPatient(data);
+                        mb = freeMachine.remove(where);
+
+                        if ((mb == null) && (where == -1)) {
+                            mailbox.put(msg);
+                            Thread.sleep(1);
+                            break;
+                        }
+                        machine.put(data, where);
+                        machineToPatient.put(where, msg.replyTo);
+
+                        patientToMachine.put(data, mb);
+                        mb.put(new Message("null", null, null));
+                        msg.replyTo.put(new Message("Where you go", "" + where, null));
+                        break;
+                    case "IS_READY":
+                        mb = patientToMachine.get(data);
+                        if (mb == null) {
+                            mailbox.put(msg);
+                            Thread.sleep(1);
+                            break;
+                        }
+                        mb.put(new Message(null, "" + data, null));
+                        break;
+                    case "COMPLETED_PATIENT":
+                        mb = machineToPatient.get(Integer.parseInt(msg.content));
+                        if (mb == null) {
+                            mailbox.put(msg);
+                            Thread.sleep(1);
+                            break;
+                        }
+                        mb.put(new Message(null, null, null));
+                        break;
+                    case "PATIENT_GONE":
+                        mb = patientToMachine.get(data);
+                        if (mb == null) {
+                            mailbox.put(msg);
+                            Thread.sleep(1);
+                            break;
+                        }
+
+                        mb.put(new Message(null, null, null));
+                        patientToMachine.remove(Integer.parseInt(msg.content));
+                        Integer machineId = machine.remove(data);
+                        if (machineId != null) {
+                            machineToPatient.remove(machineId);
+                        }
+
+                        break;
+                    case "FREE_MACHINE":
+                        freeMachine.put(Integer.parseInt(msg.content), msg.replyTo);
+                        waitingmailbox.put(new WaitingRoomMessage("NEXT_PATIENT", "", null));
+                        break;
+                }
+
             }
-            id = setPatient(patientId);
-            System.out.println("Patient: " + patientId + "  Go to MACHINE=" + id);
-            machineWaitPatient.signalAll();
-            while (machinePatient[id] == patientId) {
-                patientWaiting.await();
-            }
-            waiting--;
-            if(waiting==0)
-            {
-                rest=true;
-            }
-            System.out.println("Patient:" + patientId + "Is leaving Hospital");
-        } finally {
-            mutex.unlock();
+        } catch (
+
+        InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
-    public void beMachine(int machineId) throws InterruptedException {
-        mutex.lock();
-        try {
-            // Descansa y selecciona paciente
-                        waitingRoom.indicateNext();
-
-            while (rest) {
-                System.out.println("Machine:" + machineId + " go to sleep");
-                machineRest.await();
-                System.out.println("Machine:" + machineId + " have awake");
+    public int setPatient(int patientId) {
+        for (int id = 0; id < numMachines; id++) {
+            if (freeMachine.containsKey(id)) {
+                return id; // primera máquina libre
             }
-            while (machinePatient[machineId] == 0) {
-                machineWaitPatient.await();
-            }
-        } finally {
-            mutex.unlock();
         }
-        Thread.sleep(rand.nextInt(10, 20));
-        System.out.println("🎛️  Machine:" + machineId + " Start making mamograph of patient:" + machinePatient[machineId]);
-
-        mutex.lock();
-        try {
-            
-            deletePatient(machineId);
-            patientWaiting.signalAll();
-            while (rest)
-            {
-                
-            }
-        } finally {
-            mutex.unlock();
-        }
-    }
-
-    public Boolean getRest() {
-        return rest;
-    }
-
-    public void setRest(boolean rest) {
-        this.rest = rest;
-    }
-
-    public int setPatient(int patient) {
-        int id;
-        if (machinePatient[0] == 0) {
-            id = 0;
-        } else if (machinePatient[1] == 0) {
-            id = 1;
-        } else {
-            id = 2;
-        }
-        machinePatient[id] = patient;
-        return id;
-    }
-
-    public void deletePatient(int machineId) {
-        machinePatient[machineId] = 0;
+        return -1; // ninguna libre
     }
 
 }

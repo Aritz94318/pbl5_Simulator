@@ -1,33 +1,53 @@
 package edu.mondragon.os.pbl.hospital;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
+import edu.mondragon.os.pbl.hospital.mailbox.Message;
+
 public class Machine extends Thread {
 
-    private int arrivalTime = 0;
-    private Hospital hospital;
     private int id;
+    private Message reply;
+    private BlockingQueue<HospitalMessage> hospital;
+    private final BlockingQueue<Message> myMailbox;
 
-    public Machine(int id, Hospital hospital) {
+    public Machine(int id, BlockingQueue<HospitalMessage> hospital) {
         super("Machine " + id);
         this.hospital = hospital;
-        arrivalTime += 500 * id;
+        this.myMailbox = new LinkedBlockingQueue<>();
         this.id = id;
     }
 
     @Override
     public void run() {
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-        }
+
         while (!Thread.interrupted()) {
             try {
-                hospital.beMachine(id);
+                beMachine(id);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 interrupt();
             }
         }
     }
 
+    public void beMachine(int machineId) throws InterruptedException {
+
+        hospital.put(new HospitalMessage("FREE_MACHINE", "" + id, myMailbox));
+        reply = myMailbox.take();
+
+        reply = myMailbox.take();
+
+        System.out.println("🎛️  Machine:" + machineId + " Start making mamograph of patient:" + reply.content);
+        Thread.sleep(150);
+        hospital.put(new HospitalMessage("COMPLETED_PATIENT", "" + id, myMailbox));
+    
+        //reply = myMailbox.take();
+        
+        
+    }
 }
 
 // Machine durmiendo
