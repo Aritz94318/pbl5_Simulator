@@ -12,6 +12,7 @@ public class Machine extends Thread {
     private Message reply;
     private BlockingQueue<HospitalMessage> hospital;
     private final BlockingQueue<Message> myMailbox;
+    private long t0;
 
     public Machine(int id, BlockingQueue<HospitalMessage> hospital) {
         super("Machine " + id);
@@ -20,12 +21,24 @@ public class Machine extends Thread {
         this.id = id;
     }
 
+    private void log(String emoji, String phase, String msg) {
+        long ms = System.currentTimeMillis() - t0;
+        System.out.printf("[%6dms] %s [%s] %-14s %s%n",
+                ms, emoji, getName(), phase, msg);
+    }
+
     @Override
     public void run() {
+
+        t0 = System.currentTimeMillis();
+        log("🛠️", "START", "Encendida y lista");
 
         while (!Thread.interrupted()) {
             try {
                 beMachine(id);
+
+                // Pequeña pausa antes de volver a ofrecerse como libre
+                log("😴", "REST", "Esperando siguiente paciente...");
                 Thread.sleep(200);
             } catch (InterruptedException e) {
                 interrupt();
@@ -35,18 +48,27 @@ public class Machine extends Thread {
 
     public void beMachine(int machineId) throws InterruptedException {
 
+        // 1) Se anuncia como libre
+        log("🟢", "AVAILABLE", "Máquina " + machineId + " libre");
         hospital.put(new HospitalMessage("FREE_MACHINE", "" + id, myMailbox));
-        reply = myMailbox.take();
 
-        reply = myMailbox.take();
+        // 2) Espera asignación (según tu protocolo garantizado)
+        reply = myMailbox.take(); // (por ejemplo: ack / señal interna)
+        log("📩", "ASSIGN", "Señal recibida (asignación en proceso)");
 
-        System.out.println("🎛️  Machine:" + machineId + " Start making mamograph of patient:" + reply.content);
+        reply = myMailbox.take(); // aquí viene el paciente (reply.content)
+        String patientId = reply.content;
+
+        // 3) Mamografía
+        log("🎛️", "MAMMOGRAPHY", "Inicia mamografía al paciente " + patientId);
+        log("⏳", "MAMMOGRAPHY", "Realizando mamografía...");
         Thread.sleep(150);
+
+        // 4) Finaliza y notifica
+        log("✅", "DONE", "Mamografía completada para paciente " + patientId);
         hospital.put(new HospitalMessage("COMPLETED_PATIENT", "" + id, myMailbox));
-    
-        //reply = myMailbox.take();
-        
-        
+        // reply = myMailbox.take();
+
     }
 }
 
