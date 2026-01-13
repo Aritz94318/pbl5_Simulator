@@ -83,12 +83,29 @@ public class Patient extends Thread {
 
     public void doctorsDiagnostics(int id) throws InterruptedException {
         diagnosticUnit.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "" + id, myMailbox));
-        diagnosticUnit.take();
-        System.out.println("Ha sido a nalizado por la IA y a pasado a manos de los expertos Paciente: " + id);
-        diagnosticUnit.take();
-        System.out.println("Ya paso a manos de un doctor espere asta que verfiquen Paciente:" + id);
-        diagnosticUnit.take();
-        System.out.println("Coja cita con su doctor Paciente:" + id);
+         boolean iaReceived = false;
+
+    while (true) {
+        Message m = myMailbox.take(); // espera el siguiente mensaje que llegue
+
+        // 1) Resultado de IA (en tu código viene con type = "" y content = "MALIGNO/VENIGNO")
+        if (!iaReceived) {
+            iaReceived = true;
+            System.out.println("Ha sido analizado por la IA y ha pasado a manos de expertos. Paciente: " + id
+                    + " | IA: " + m.content);
+            continue;
+        }
+
+        // 2) Mensaje final (en tu código lo envías con type = "End")
+        if ("End".equals(m.type)) {
+            System.out.println("Diagnóstico FINAL listo. Coja cita con su doctor. Paciente: " + id
+                    + " | Resultado: " + m.content);
+            break;
+        }
+
+        // 3) Cualquier otro mensaje intermedio (por si en el futuro añades más)
+        System.out.println("Actualización (" + m.type + "): " + m.content + " | Paciente: " + id);
+    }
 
     }
 }

@@ -52,6 +52,7 @@ public ResponseEntity<String> ping() {
             System.out.println("⏳ waitEndOfThreads()");
             app.waitEndOfThreads(body.getNumPatients(),body.getNumDoctors(),body.getNumMachines());
             System.out.println("🏁 Terminó waitEndOfThreads()");
+            
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();

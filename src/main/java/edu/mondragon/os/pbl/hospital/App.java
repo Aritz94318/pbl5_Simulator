@@ -15,7 +15,9 @@ import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
  */
 public class App {
     final static int N = 5;
+    private long start;
 
+    private long end;
     private Thread hospital;
     private Thread waitingRoom;
     private Thread diagnosticUnit;
@@ -36,7 +38,7 @@ public class App {
         machines = new Machine[NUMMACHINES];
 
         for (int i = 0; i < NUMPATIENTS; i++) {
-            patients[i] = new Patient(i + 1, apServer, hoServer, waServer,duServer);
+            patients[i] = new Patient(i + 1, apServer, hoServer, waServer, duServer);
         }
         for (int i = 0; i < NUMDOCTORS; i++) {
             doctors[i] = new Doctor(i, duServer);
@@ -53,14 +55,16 @@ public class App {
 
     public void startThreads() {
 
+        start = System.nanoTime();
+
         for (Patient patient : patients) {
             patient.start();
         }
-        /*
-         * for (Doctor doctor : doctors) {
-         * doctor.start();
-         * }
-         */
+
+        for (Doctor doctor : doctors) {
+            doctor.start();
+        }
+
         for (Machine machine : machines) {
             machine.start();
         }
@@ -70,12 +74,12 @@ public class App {
         diagnosticUnit.start();
     }
 
-    public void waitEndOfThreads(int NUMPATIENTS,int NUMDOCTORS,int NUMMACHINES ) {
+    public void waitEndOfThreads(int NUMPATIENTS, int NUMDOCTORS, int NUMMACHINES) {
         try {
             for (int i = 0; i < NUMPATIENTS; i++) {
                 patients[i].join();
             }
-             for (int i = 0; i < NUMMACHINES; i++) {
+            for (int i = 0; i < NUMMACHINES; i++) {
                 machines[i].interrupt();
             }
             for (int i = 0; i < NUMDOCTORS; i++) {
@@ -88,17 +92,19 @@ public class App {
         waitingRoom.interrupt();
         hospital.interrupt();
         diagnosticUnit.interrupt();
-    }
-      
+        end = System.nanoTime();
+        double seconds = (end - start) / 1_000_000_000.0;
+        System.out.println(seconds);
     }
 
-    /*
-     * public static void main(String[] args) {
-     * 
-     * App app = new App();
-     * 
-     * app.startThreads();
-     * app.waitEndOfThreads();
-     * }
-     */
+}
 
+/*
+ * public static void main(String[] args) {
+ * 
+ * App app = new App();
+ * 
+ * app.startThreads();
+ * app.waitEndOfThreads();
+ * }
+ */

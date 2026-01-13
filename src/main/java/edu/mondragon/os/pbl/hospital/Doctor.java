@@ -26,7 +26,7 @@ public class Doctor extends Thread {
         try {
             Thread.sleep(arrivalTime);
             diagnosticUnit.put(new DiagnosticUnitMessage("Get Diagnosis", "" + id, myMailbox));
-            diagnosticUnit.take();
+            myMailbox.take();
             diagnosticUnit.put(new DiagnosticUnitMessage("FINAL DIAGNOSIS", "" + id, myMailbox));
         } catch (InterruptedException e) {
         }
