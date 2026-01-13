@@ -23,6 +23,7 @@ public class Patient extends Thread {
     private int id;
     private String appoiment_id;
     private Message reply;
+    private long t0;
 
     public Patient(int id, BlockingQueue<AppointmentMessage> appoiment, BlockingQueue<HospitalMessage> hospital,
             BlockingQueue<WaitingRoomMessage> waitingroom, BlockingQueue<DiagnosticUnitMessage> diagnosticUnit) {
@@ -42,20 +43,25 @@ public class Patient extends Thread {
     public void run() {
         try {
             // arrives to the hospital
-            System.out.println(getName() + " arrives to the hospital.");
+            t0 = System.currentTimeMillis();
+
+            log("ARRIVAL", "Llega al hospital");
             Thread.sleep(rand.nextInt(2000));
+
+            log("APPOINTMENT", "Solicita cita");
 
             appoiment.put(new AppointmentMessage("REQUEST_APPOINTMENT", "" + id, myMailbox));
 
             // esperar respuesta
             reply = myMailbox.take();
             appoiment_id = reply.content;
-            System.out.println(getName() + " has appointment #" + appoiment_id);
+            log("APPOINTMENT", "Recibe cita #" + appoiment_id);
 
-            // patient waits for her turn
-            System.out.println(getName() + " waits in the waiting room.");
+            log("WAITING_ROOM", "Entra a sala de espera (turno " + appoiment_id + ")");
             waitingroom.put(new WaitingRoomMessage("WAIT", appoiment_id, myMailbox));
             reply = myMailbox.take();
+            log("WAITING_ROOM", "Es su turno. Sale hacia triaje/mamografía");
+
             attendPatient(id);
             doctorsDiagnostics(id);
 
@@ -83,31 +89,37 @@ public class Patient extends Thread {
 
     public void doctorsDiagnostics(int id) throws InterruptedException {
         diagnosticUnit.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "" + id, myMailbox));
-         boolean iaReceived = false;
+        boolean iaReceived = false;
 
-    while (true) {
-        Message m = myMailbox.take(); // espera el siguiente mensaje que llegue
+        while (true) {
+            Message m = myMailbox.take(); // espera el siguiente mensaje que llegue
 
-        // 1) Resultado de IA (en tu código viene con type = "" y content = "MALIGNO/VENIGNO")
-        if (!iaReceived) {
-            iaReceived = true;
-            System.out.println("Ha sido analizado por la IA y ha pasado a manos de expertos. Paciente: " + id
-                    + " | IA: " + m.content);
-            continue;
+            // 1) Resultado de IA (en tu código viene con type = "" y content =
+            // "MALIGNO/VENIGNO")
+            if (!iaReceived) {
+                iaReceived = true;
+                System.out.println("Ha sido analizado por la IA y ha pasado a manos de expertos. Paciente: " + id
+                        + " | IA: " + m.content);
+                continue;
+            }
+
+            // 2) Mensaje final (en tu código lo envías con type = "End")
+            if ("End".equals(m.type)) {
+                System.out.println("Diagnóstico FINAL listo. Coja cita con su doctor. Paciente: " + id
+                        + " | Resultado: " + m.content);
+                break;
+            }
+
+            // 3) Cualquier otro mensaje intermedio (por si en el futuro añades más)
+            System.out.println("Actualización (" + m.type + "): " + m.content + " | Paciente: " + id);
         }
-
-        // 2) Mensaje final (en tu código lo envías con type = "End")
-        if ("End".equals(m.type)) {
-            System.out.println("Diagnóstico FINAL listo. Coja cita con su doctor. Paciente: " + id
-                    + " | Resultado: " + m.content);
-            break;
-        }
-
-        // 3) Cualquier otro mensaje intermedio (por si en el futuro añades más)
-        System.out.println("Actualización (" + m.type + "): " + m.content + " | Paciente: " + id);
     }
 
+    private void log(String phase, String msg) {
+        long ms = (System.currentTimeMillis() - t0);
+        System.out.printf("[%6dms] [%s] %-14s %s%n", ms, getName(), phase, msg);
     }
+
 }
 // Paciente pide cita
 // Paciente espera a que llegue su turno

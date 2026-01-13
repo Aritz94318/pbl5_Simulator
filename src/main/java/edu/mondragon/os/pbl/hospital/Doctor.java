@@ -24,10 +24,13 @@ public class Doctor extends Thread {
     @Override
     public void run() {
         try {
-            Thread.sleep(arrivalTime);
-            diagnosticUnit.put(new DiagnosticUnitMessage("Get Diagnosis", "" + id, myMailbox));
-            myMailbox.take();
-            diagnosticUnit.put(new DiagnosticUnitMessage("FINAL DIAGNOSIS", "" + id, myMailbox));
+            while (!Thread.interrupted()) {
+
+                Thread.sleep(arrivalTime);
+                diagnosticUnit.put(new DiagnosticUnitMessage("Get Diagnosis", "" + id, myMailbox));
+                myMailbox.take();
+                diagnosticUnit.put(new DiagnosticUnitMessage("FINAL DIAGNOSIS", "" + id, myMailbox));
+            }
         } catch (InterruptedException e) {
         }
     }
