@@ -47,7 +47,6 @@ public class DiagnosticUnit implements Runnable {
                         negativeDiagnostics.add(diagnostic);
                     }
 
-                    System.out.println("🤖 IA result for patient " + msg.content + ": " + result);
 
                     // Responder al que envió la mamografía
                     msg.replyTo.put(new Message("", result, null));

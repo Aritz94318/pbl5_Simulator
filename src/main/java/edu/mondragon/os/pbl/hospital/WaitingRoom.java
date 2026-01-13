@@ -13,17 +13,27 @@ public class WaitingRoom implements Runnable {
 
     private final Map<Integer, BlockingQueue<Message>> waiting = new HashMap<>();
     private final BlockingQueue<WaitingRoomMessage> mailbox;
+    private long t0;
 
     public WaitingRoom(BlockingQueue<WaitingRoomMessage> mailbox) {
+
         this.mailbox = mailbox;
         currentTurn = 0;
         freeMachines = 0;
 
     }
 
+    private void log(String emoji, String phase, String msg) {
+        long ms = System.currentTimeMillis() - t0;
+        System.out.printf("[%6dms] %s [%s] %-14s %s%n",
+                ms, emoji, "Waiting Room", phase, msg);
+    }
+
     @Override
     public void run() {
         try {
+            t0 = System.currentTimeMillis();
+
             while (true) {
                 WaitingRoomMessage msg = mailbox.take(); // espera solicitudes
 
@@ -39,7 +49,7 @@ public class WaitingRoom implements Runnable {
                     currentTurn++;
                     freeMachines++;
 
-                    System.out.println("📢 Display calling turn #" + currentTurn);
+                    log("🔔", "DISPLAY", "🔊 TURNO #" + currentTurn + " → pase por favor");
                 }
                 if (freeMachines > 0) {
                     releaseIfPossible();

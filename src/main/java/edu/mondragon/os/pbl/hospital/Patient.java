@@ -45,22 +45,23 @@ public class Patient extends Thread {
             // arrives to the hospital
             t0 = System.currentTimeMillis();
 
-            log("ARRIVAL", "Llega al hospital");
+            log("🚶‍♂️", "ARRIVAL", "Llega al hospital");
             Thread.sleep(rand.nextInt(2000));
 
-            log("APPOINTMENT", "Solicita cita");
-
+            log("📅", "APPOINTMENT", "Solicita cita");
             appoiment.put(new AppointmentMessage("REQUEST_APPOINTMENT", "" + id, myMailbox));
 
-            // esperar respuesta
             reply = myMailbox.take();
             appoiment_id = reply.content;
-            log("APPOINTMENT", "Recibe cita #" + appoiment_id);
+            log("✅", "APPOINTMENT", "Recibe cita #" + appoiment_id);
 
-            log("WAITING_ROOM", "Entra a sala de espera (turno " + appoiment_id + ")");
             waitingroom.put(new WaitingRoomMessage("WAIT", appoiment_id, myMailbox));
+
+            log("🪑", "WAITING_ROOM", "Entra en sala de espera (turno " + appoiment_id + ")");
+            waitingroom.put(new WaitingRoomMessage("WAIT", appoiment_id, myMailbox));
+
             reply = myMailbox.take();
-            log("WAITING_ROOM", "Es su turno. Sale hacia triaje/mamografía");
+            log("🔔", "WAITING_ROOM", "Es su turno, pasa a mamografía");
 
             attendPatient(id);
             doctorsDiagnostics(id);
@@ -71,53 +72,46 @@ public class Patient extends Thread {
 
     public void attendPatient(int patientId) throws InterruptedException // Este es el que esta unido al paciente
     {
+        log("🏥", "HOSPITAL", "Solicita máquina de mamografía");
         hospital.put(new HospitalMessage("WAITING", "" + id, myMailbox));
 
         reply = myMailbox.take();
+        log("🩻", "MAMMOGRAPHY", "Asignada MÁQUINA " + reply.content);
 
-        System.out.println("Patient: " + patientId + "  Go to MACHINE=" + reply.content);
-
+        log("⏳", "MAMMOGRAPHY", "Realizando mamografía");
         hospital.put(new HospitalMessage("IS_READY", "" + id, myMailbox));
 
         reply = myMailbox.take();
+        log("✅", "MAMMOGRAPHY", "Mamografía finalizada");
 
-        System.out.println("Patient:" + patientId + "Is leaving Hospital");
-
+        log("🚪", "EXIT", "Sale del hospital");
         hospital.put(new HospitalMessage("PATIENT_GONE", "" + id, myMailbox));
 
     }
 
     public void doctorsDiagnostics(int id) throws InterruptedException {
-        diagnosticUnit.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "" + id, myMailbox));
-        boolean iaReceived = false;
 
-        while (true) {
-            Message m = myMailbox.take(); // espera el siguiente mensaje que llegue
+    log("🤖", "DIAG_AI", "Mamografía enviada a la IA");
+    diagnosticUnit.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "" + id, myMailbox));
 
-            // 1) Resultado de IA (en tu código viene con type = "" y content =
-            // "MALIGNO/VENIGNO")
-            if (!iaReceived) {
-                iaReceived = true;
-                System.out.println("Ha sido analizado por la IA y ha pasado a manos de expertos. Paciente: " + id
-                        + " | IA: " + m.content);
-                continue;
-            }
+    // 1) ACK / “recibido” (si lo mandas)
+    reply = myMailbox.take();
+    log("📩", "DIAG_AI", "La IA ha recibido la mamografía");
 
-            // 2) Mensaje final (en tu código lo envías con type = "End")
-            if ("End".equals(m.type)) {
-                System.out.println("Diagnóstico FINAL listo. Coja cita con su doctor. Paciente: " + id
-                        + " | Resultado: " + m.content);
-                break;
-            }
+    // 2) Resultado IA
+    reply = myMailbox.take();
+    log("🧠", "DIAG_AI", "Resultado IA: " + reply.content + " → pasa a expertos");
 
-            // 3) Cualquier otro mensaje intermedio (por si en el futuro añades más)
-            System.out.println("Actualización (" + m.type + "): " + m.content + " | Paciente: " + id);
-        }
-    }
+    // 3) Diagnóstico final
+    reply = myMailbox.take();
+    log("👨‍⚕️", "DIAG_FINAL", "Diagnóstico FINAL: " + reply.content + " (pedir cita)");
+}
 
-    private void log(String phase, String msg) {
-        long ms = (System.currentTimeMillis() - t0);
-        System.out.printf("[%6dms] [%s] %-14s %s%n", ms, getName(), phase, msg);
+
+    private void log(String emoji, String phase, String msg) {
+        long ms = System.currentTimeMillis() - t0;
+        System.out.printf("[%6dms] %s [%s] %-14s %s%n",
+                ms, emoji, getName(), phase, msg);
     }
 
 }
