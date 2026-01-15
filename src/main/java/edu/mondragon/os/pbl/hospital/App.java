@@ -3,6 +3,13 @@ package edu.mondragon.os.pbl.hospital;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import edu.mondragon.os.pbl.hospital.Actors.Doctor;
+import edu.mondragon.os.pbl.hospital.Actors.Machine;
+import edu.mondragon.os.pbl.hospital.Actors.Patient;
+import edu.mondragon.os.pbl.hospital.Rooms.Appointment;
+import edu.mondragon.os.pbl.hospital.Rooms.DiagnosticUnit;
+import edu.mondragon.os.pbl.hospital.Rooms.Hospital;
+import edu.mondragon.os.pbl.hospital.Rooms.WaitingRoom;
 import edu.mondragon.os.pbl.hospital.mailbox.AppointmentMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
