@@ -1,9 +1,10 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Actors;
 
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
 import edu.mondragon.os.pbl.hospital.mailbox.AppointmentMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
@@ -96,7 +97,7 @@ public class Patient extends Thread {
 
     // 1) ACK / “recibido” (si lo mandas)
     reply = myMailbox.take();
-    log("📩", "DIAG_AI", "La IA ha recibido la mamografía");
+    log("📩", "DIAG_AI", "La IA ha recibido la mamografía Diagnostico:"+reply.content);
 
     // 2) Resultado IA
     reply = myMailbox.take();
@@ -107,9 +108,10 @@ public class Patient extends Thread {
     log("👨‍⚕️", "DIAG_FINAL", "Diagnóstico FINAL: " + reply.content + " (pedir cita)");
 }
 
-
-    private void log(String emoji, String phase, String msg) {
+private void log(String emoji, String phase, String msg) {
         long ms = System.currentTimeMillis() - t0;
+        String text=emoji+" ["+phase+"]"+msg;
+        SimulationService.postSimEvent("PATIENT", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
     }

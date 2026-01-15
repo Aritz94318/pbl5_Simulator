@@ -1,8 +1,9 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Actors;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 
@@ -23,6 +24,8 @@ public class Doctor extends Thread {
     }
     private void log(String emoji, String phase, String msg) {
         long ms = System.currentTimeMillis() - t0;
+        String text=emoji+" ["+phase+"]"+msg;
+        SimulationService.postSimEvent("DOCTOR", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
     }

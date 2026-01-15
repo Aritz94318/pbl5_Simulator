@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Rooms;
 
 import java.util.HashMap;
 import java.util.Map;

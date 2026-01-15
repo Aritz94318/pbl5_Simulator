@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.mondragon.os.pbl.hospital.App;
+import edu.mondragon.os.pbl.hospital.SimulationApplication;
+import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
 import edu.mondragon.os.pbl.hospital.Values.GlobalState;
 import edu.mondragon.os.pbl.hospital.Values.GlobalUpdateRequest;
 
@@ -25,40 +28,55 @@ public class HospitalController {
 
     public HospitalController(GlobalState globalState) {
         this.globalState = globalState;
+        globalState.update(1, 1, 1);
     }
 
     @GetMapping(value = "/ping", produces = "application/json")
-public ResponseEntity<String> ping() {
-    return ResponseEntity.ok("Servidor OK");
-}
-
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("Servidor OK");
+    }
 
     @PutMapping(value = "/modify", consumes = { "application/json", "application/xml" }, produces = {
             "application/json", "application/xml" })
     public ResponseEntity<GlobalState> modifyGlobals(@RequestBody GlobalUpdateRequest body) {
 
+        if ((body.getNumPatients() == 0) && (body.getNumDoctors() == 0) && (body.getNumMachines() == 0)) {
+            return ResponseEntity.badRequest().build();
+        }
         System.out.println("✅ Entró en /Simulation/modify");
+
         System.out
                 .println("Body: " + body.getNumPatients() + ", " + body.getNumDoctors() + ", " + body.getNumMachines());
 
         globalState.update(body.getNumPatients(), body.getNumDoctors(), body.getNumMachines());
 
-        try {
-            System.out.println("✅ Antes de crear App");
-            App app = new App(body.getNumPatients(), body.getNumDoctors(), body.getNumMachines());
-            System.out.println("✅ App creada");
-            System.out.println("🚀 startThreads()");
-            app.startThreads();
-            System.out.println("⏳ waitEndOfThreads()");
-            app.waitEndOfThreads(body.getNumPatients(),body.getNumDoctors(),body.getNumMachines());
-            System.out.println("🏁 Terminó waitEndOfThreads()");
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
-
         return ResponseEntity.ok(globalState);
+    }
+
+    @PostMapping(value = "/start", produces = { "application/json", "application/xml" })
+    public ResponseEntity<GlobalState> startSimulation() {
+
+        System.out.println("✅ Entró en /Simulation/start");
+
+        new Thread(() -> {
+            try {
+                App app = new App(
+                        globalState.getNumPatients(),
+                        globalState.getNumDoctors(),
+                        globalState.getNumMachines());
+                app.startThreads();
+                app.waitEndOfThreads(
+                        globalState.getNumPatients(),
+                        globalState.getNumDoctors(),
+                        globalState.getNumMachines());
+                System.out.println("🏁 Simulación terminada");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, "simulation-runner").start();
+
+        // 202 Accepted: “he arrancado el proceso”
+        return ResponseEntity.accepted().body(globalState);
     }
 
 }

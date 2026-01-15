@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Rooms;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class WaitingRoom implements Runnable {
     public void run() {
         try {
             t0 = System.currentTimeMillis();
-
+        
             while (true) {
                 WaitingRoomMessage msg = mailbox.take(); // espera solicitudes
 

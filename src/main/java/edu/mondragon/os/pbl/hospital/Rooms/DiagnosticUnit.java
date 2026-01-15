@@ -1,5 +1,6 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Rooms;
 
+import edu.mondragon.os.pbl.hospital.Values.Diagnostic;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 
