@@ -60,6 +60,7 @@ public class HospitalController {
 
         new Thread(() -> {
             try {
+                long startNs = System.nanoTime();
                 App app = new App(
                         globalState.getNumPatients(),
                         globalState.getNumDoctors(),
@@ -70,10 +71,14 @@ public class HospitalController {
                         globalState.getNumDoctors(),
                         globalState.getNumMachines());
                 System.out.println("🏁 Simulación terminada");
+                long endNs = System.nanoTime();
+                long elapsedNs = endNs - startNs;
+                SimulationService.sendFinalTime(elapsedNs);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }, "simulation-runner").start();
+
 
         // 202 Accepted: “he arrancado el proceso”
         return ResponseEntity.accepted().body(globalState);

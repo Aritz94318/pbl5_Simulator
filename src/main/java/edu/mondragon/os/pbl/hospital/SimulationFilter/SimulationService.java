@@ -36,4 +36,19 @@ public class SimulationService {
                 Void.class);
     }
 
+    public static void sendFinalTime(long timeNanoSeconds) {
+        try {
+
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8080/api/sim/final";
+            restTemplate.postForEntity(
+                    url,
+                    timeNanoSeconds,
+                    Void.class);
+        } catch (Exception e) {
+            // Importante: no romper la simulación si el backend no está activo
+            System.err.println("⚠️ No se pudo enviar el tiempo final: " + e.getMessage());
+        }
+    }
+
 }
