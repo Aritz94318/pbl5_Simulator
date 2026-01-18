@@ -11,16 +11,16 @@ public class WaitingRoom implements Runnable {
     private int currentTurn;
     private int freeMachines;
 
-    private final Map<Integer, BlockingQueue<Message>> waiting = new HashMap<>();
     private final BlockingQueue<WaitingRoomMessage> mailbox;
     private long t0;
 
+    // ticket -> WAIT msg (contiene replyTo del paciente)
+    private final Map<Integer, WaitingRoomMessage> backlogByPatient = new HashMap<>();
+
     public WaitingRoom(BlockingQueue<WaitingRoomMessage> mailbox) {
-
         this.mailbox = mailbox;
-        currentTurn = 0;
-        freeMachines = 0;
-
+        this.currentTurn = 1;   // si tus tickets empiezan en 0, pon 0
+        this.freeMachines = 0;
     }
 
     private void log(String emoji, String phase, String msg) {
@@ -33,26 +33,33 @@ public class WaitingRoom implements Runnable {
     public void run() {
         try {
             t0 = System.currentTimeMillis();
-        
-            while (true) {
-                WaitingRoomMessage msg = mailbox.take(); // espera solicitudes
 
-                if (msg.type.equals("STOP")) {
-                    break;
-                }
+            while (!Thread.currentThread().isInterrupted()) {
+                WaitingRoomMessage msg = mailbox.take();
 
-                if (msg.type.equals("WAIT")) {
-                    waiting.put(Integer.parseInt(msg.content), msg.replyTo);
-                    releaseIfPossible();
-                }
-                if (msg.type.equals("NEXT_PATIENT")) {
-                    currentTurn++;
-                    freeMachines++;
+                if ("STOP".equals(msg.type)) break;
 
-                    log("🔔", "DISPLAY", "🔊 TURNO #" + currentTurn + " → pase por favor");
-                }
-                if (freeMachines > 0) {
-                    releaseIfPossible();
+                switch (msg.type) {
+
+                    case "WAIT": {
+                        int ticket = Integer.parseInt(msg.content);
+                        backlogByPatient.put(ticket, msg);
+                        log("🧍", "WAIT", "Llega paciente ticket=" + ticket);
+
+                        releaseIfPossible();
+                        break;
+                    }
+
+                    case "NEXT_PATIENT": {
+                        freeMachines++;
+                        log("🟢", "MACHINE", "Máquina libre. freeMachines=" + freeMachines);
+
+                        releaseIfPossible();
+                        break;
+                    }
+
+                    default:
+                        log("❓", "UNKNOWN", msg.type + " content=" + msg.content);
                 }
             }
         } catch (InterruptedException e) {
@@ -61,10 +68,16 @@ public class WaitingRoom implements Runnable {
     }
 
     private void releaseIfPossible() throws InterruptedException {
-        BlockingQueue<Message> mb = waiting.remove(currentTurn - freeMachines + 1);
-        if (mb != null) {
-            mb.put(new Message("YOUR_TURN", "" + currentTurn, null));
-            freeMachines--;
+        while (freeMachines > 0) {
+            WaitingRoomMessage next = backlogByPatient.remove(currentTurn);
+            if (next == null) return; // aún no llegó el paciente de este turno
+
+            // Ahora SÍ es su turno
+            next.replyTo.put(new Message("YOUR_TURN", "" + currentTurn, null));
+            log("📢", "DISPLAY", "🔊 TURNO #" + currentTurn + " → pase por favor");
+
+            currentTurn++;
+            freeMachines--; // 👈 esto faltaba sí o sí
         }
     }
 }

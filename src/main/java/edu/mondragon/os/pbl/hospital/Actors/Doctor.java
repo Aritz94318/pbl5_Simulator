@@ -22,9 +22,10 @@ public class Doctor extends Thread {
         this.myMailbox = new LinkedBlockingQueue<>();
         arrivalTime += 500 * id;
     }
+
     private void log(String emoji, String phase, String msg) {
         long ms = System.currentTimeMillis() - t0;
-        String text=emoji+" ["+phase+"]"+msg;
+        String text = emoji + " [" + phase + "]" + msg;
         SimulationService.postSimEvent("DOCTOR", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
@@ -39,24 +40,31 @@ public class Doctor extends Thread {
             while (!Thread.interrupted()) {
 
                 // Simula tiempo hasta que “entra en turno”
+                // 💤 Descanso / tiempo muerto del doctor antes de pedir trabajo
                 log("😴", "REST", "Descansando...");
-                Thread.sleep(arrivalTime);
+                Thread.sleep((long) (Math.random() * 700));
+                // 0.8 – 1.5 s → tiempo natural entre tareas
 
-                // 1) Pide un caso/diagnóstico para revisar
+                // 1️⃣ Pide un caso/diagnóstico para revisar
                 log("📥", "REQUEST", "Pide un caso para revisar");
                 diagnosticUnit.put(new DiagnosticUnitMessage("Get Diagnosis", "" + id, myMailbox));
 
-                // 2) Espera a que le asignen / le manden algo
+                // ⏳ Espera administrativa / asignación de caso
+                Thread.sleep((long) (Math.random() * 400));
+                // 0.3 – 0.7 s → cola / asignación interna
+
+                // 2️⃣ Espera a que le asignen el caso
                 Message m1 = myMailbox.take();
                 log("🔔", "ASSIGNED", "Caso recibido: " + (m1.content != null ? m1.content : "(sin detalle)"));
 
-                // 3) Lanza la fase final (según tu protocolo actual)
+                // 🧠 Revisión médica real
+                Thread.sleep(1200 + (long) (Math.random() * 1000));
+                // 1.2 – 2.2 s → análisis del diagnóstico
+
+                // 3️⃣ Lanza la fase final
                 log("👨‍⚕️", "REVIEW", "Enviando diagnóstico final");
                 diagnosticUnit.put(new DiagnosticUnitMessage("FINAL DIAGNOSIS", "" + id, myMailbox));
 
-                // Si tu DiagnosticUnit responde también a esto, puedes descomentar:
-                // Message m2 = myMailbox.take();
-                // log("✅", "DONE", "Diagnóstico final completado: " + (m2.content != null ? m2.content : "(ok)"));
             }
         } catch (InterruptedException e) {
         }

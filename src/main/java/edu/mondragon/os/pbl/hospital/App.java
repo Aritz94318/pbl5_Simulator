@@ -51,11 +51,11 @@ public class App {
             doctors[i] = new Doctor(i, duServer);
         }
         for (int i = 0; i < NUMMACHINES; i++) {
-            machines[i] = new Machine(i, hoServer);
+            machines[i] = new Machine(i, hoServer,waServer);
         }
         appoiment = new Thread(new Appointment(apServer));
         waitingRoom = new Thread(new WaitingRoom(waServer));
-        hospital = new Thread(new Hospital(hoServer, waServer, NUMMACHINES));
+        hospital = new Thread(new Hospital(hoServer, NUMMACHINES));
         diagnosticUnit = new Thread(new DiagnosticUnit(duServer));
 
     }
