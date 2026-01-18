@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.SimulationFilter;
+package edu.mondragon.os.pbl.hospital.simulationfilter;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

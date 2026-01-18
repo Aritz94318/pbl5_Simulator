@@ -1,15 +1,14 @@
-package edu.mondragon.os.pbl.hospital.Actors;
+package edu.mondragon.os.pbl.hospital.actors;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
+import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
 
 public class Doctor extends Thread {
 
-    private int arrivalTime = 0;
     private BlockingQueue<DiagnosticUnitMessage> diagnosticUnit;
     private final BlockingQueue<Message> myMailbox;
     private int id;
@@ -20,7 +19,6 @@ public class Doctor extends Thread {
         this.id = id;
         this.diagnosticUnit = diagnosticUnit;
         this.myMailbox = new LinkedBlockingQueue<>();
-        arrivalTime += 500 * id;
     }
 
     private void log(String emoji, String phase, String msg) {
@@ -39,30 +37,30 @@ public class Doctor extends Thread {
 
             while (!Thread.interrupted()) {
 
-                // Simula tiempo hasta que “entra en turno”
-                // 💤 Descanso / tiempo muerto del doctor antes de pedir trabajo
-                log("😴", "REST", "Descansando...");
+                // Simulates time until it “enters its turn”
+                // 💤 Doctor rest / idle time before requesting work
+                log("😴", "REST", "Resting...");
                 Thread.sleep((long) (Math.random() * 700));
-                // 0.8 – 1.5 s → tiempo natural entre tareas
+                // 0.8 – 1.5 s → natural time between tasks
 
-                // 1️⃣ Pide un caso/diagnóstico para revisar
-                log("📥", "REQUEST", "Pide un caso para revisar");
+                // 1️⃣ Requests a case/diagnosis to review
+                log("📥", "REQUEST", "Requests a case to review");
                 diagnosticUnit.put(new DiagnosticUnitMessage("Get Diagnosis", "" + id, myMailbox));
 
-                // ⏳ Espera administrativa / asignación de caso
+                // ⏳ Administrative wait / case assignment
                 Thread.sleep((long) (Math.random() * 400));
-                // 0.3 – 0.7 s → cola / asignación interna
+                // 0.3 – 0.7 s → queue / internal assignment
 
-                // 2️⃣ Espera a que le asignen el caso
+                // 2️⃣ Waits for the case to be assigned
                 Message m1 = myMailbox.take();
-                log("🔔", "ASSIGNED", "Caso recibido: " + (m1.content != null ? m1.content : "(sin detalle)"));
+                log("🔔", "ASSIGNED", "Case received: " + (m1.content != null ? m1.content : "(no details)"));
 
-                // 🧠 Revisión médica real
+                // 🧠 Actual medical review
                 Thread.sleep(1200 + (long) (Math.random() * 1000));
-                // 1.2 – 2.2 s → análisis del diagnóstico
+                // 1.2 – 2.2 s → diagnosis analysis
 
-                // 3️⃣ Lanza la fase final
-                log("👨‍⚕️", "REVIEW", "Enviando diagnóstico final");
+                // 3️⃣ Launches the final phase
+                log("👨‍⚕️", "REVIEW", "Sending final diagnosis");
                 diagnosticUnit.put(new DiagnosticUnitMessage("FINAL DIAGNOSIS", "" + id, myMailbox));
 
             }

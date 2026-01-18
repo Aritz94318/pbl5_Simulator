@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.Rooms;
+package edu.mondragon.os.pbl.hospital.room;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,6 @@ import java.util.concurrent.BlockingQueue;
 
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
-import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
 
 public class Hospital implements Runnable {
 
@@ -30,17 +29,21 @@ public class Hospital implements Runnable {
     private final BlockingQueue<HospitalMessage> mailbox;
     private final Map<String, HospitalMessage> backlogByPhase = new HashMap<>();
 
-    private BlockingQueue<Message> mb;
     private MachineState ms;
     private PatientState ps;
     private int machineId;
     private int patientId;
 
-    // private Diagnostic diagnotic;
+    // private Diagnostic diagnotic
 
     public Hospital(BlockingQueue<HospitalMessage> mailbox, int numMachines) {
         this.mailbox = mailbox;
         this.numMachines = numMachines;
+        this.ms = new MachineState();
+        this.ps = new PatientState();
+        machineId = 0;
+        patientId = 0;
+
     }
 
     @Override
@@ -50,7 +53,6 @@ public class Hospital implements Runnable {
                 HospitalMessage msg = mailbox.take(); // espera solicitudes
                 switch (msg.type) {
                     case "FREE_MACHINE":
-                        System.out.println("Machine:"+msg.content+"Crea un guardado AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                         ms = machines.computeIfAbsent(Integer.parseInt(msg.content),
                                 id -> new MachineState());
                         ms.mamographiDone = false;
@@ -159,12 +161,12 @@ public class Hospital implements Runnable {
     public int setPatient() {
         for (int id = 0; id < numMachines; id++) {
 
-            MachineState ms = machines.get(id);
+             ms = machines.get(id);
             if (ms != null && ms.isFree) {
                 return id; // primera máquina libre
             }
         }
-       
+
         return -1; // ninguna libre
     }
 

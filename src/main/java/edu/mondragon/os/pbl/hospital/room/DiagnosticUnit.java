@@ -1,8 +1,8 @@
-package edu.mondragon.os.pbl.hospital.Rooms;
+package edu.mondragon.os.pbl.hospital.room;
 
-import edu.mondragon.os.pbl.hospital.Values.Diagnostic;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
+import edu.mondragon.os.pbl.hospital.values.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +14,8 @@ public class DiagnosticUnit implements Runnable {
     private final BlockingQueue<DiagnosticUnitMessage> mailbox;
     private static final double POSITIVE_PROBABILITY = 0.3;
     private static final double CHANGE_PROBABILITY = 0.34;
+    private static final String MALIGNO = "MALIGNO";
+    private static final String VENIGNO = "VENIGNO";
 
     private final ArrayList<Diagnostic> positiveDiagnostics = new ArrayList<>();
     private final ArrayList<Diagnostic> negativeDiagnostics = new ArrayList<>();
@@ -39,7 +41,7 @@ public class DiagnosticUnit implements Runnable {
 
                     boolean isPositive = randomValue < POSITIVE_PROBABILITY;
 
-                    String result = isPositive ? "MALIGNO" : "VENIGNO";
+                    String result = isPositive ? MALIGNO : VENIGNO;
                     Diagnostic diagnostic = new Diagnostic(msg.content, result, msg.replyTo);
 
                     if (isPositive) {
@@ -95,10 +97,10 @@ public class DiagnosticUnit implements Runnable {
 
                         boolean isPositive = randomValue < CHANGE_PROBABILITY;
                         if (isPositive) {
-                            if (diagnosis.getDiagnosis().equals("MALIGNO")) {
-                                diagnosis.setPositive("VENIGNO");
+                            if (diagnosis.getDiagnosis().equals(MALIGNO)) {
+                                diagnosis.setPositive(VENIGNO);
                             } else {
-                                diagnosis.setPositive("MALIGNO");
+                                diagnosis.setPositive(MALIGNO);
                             }
                         }
                         BlockingQueue<Message> mb = diagnosis.getReplyTo();
