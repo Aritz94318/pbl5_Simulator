@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Rooms;
 
 
 import java.util.concurrent.BlockingQueue;
@@ -19,8 +19,8 @@ public class Appointment implements Runnable {
     public void run() {
         try {
             while (true) {
+                
                 AppointmentMessage msg = mailbox.take(); // espera solicitudes
-
                 if (msg.type.equals("STOP")) {
                     break;
                 }

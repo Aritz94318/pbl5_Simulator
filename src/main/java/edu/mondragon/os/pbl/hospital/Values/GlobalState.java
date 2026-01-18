@@ -15,7 +15,7 @@ public class GlobalState {
         this.numMachines = numMachines;
     }
 
-    public int getValue1() { return numPatients; }
-    public int getValue2() { return numDoctors; }
-    public int getValue3() { return numMachines; }
+    public int getNumPatients() { return numPatients; }
+    public int getNumDoctors() { return numDoctors; }
+    public int getNumMachines() { return numMachines; }
 }

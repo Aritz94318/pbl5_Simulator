@@ -3,6 +3,13 @@ package edu.mondragon.os.pbl.hospital;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import edu.mondragon.os.pbl.hospital.Actors.Doctor;
+import edu.mondragon.os.pbl.hospital.Actors.Machine;
+import edu.mondragon.os.pbl.hospital.Actors.Patient;
+import edu.mondragon.os.pbl.hospital.Rooms.Appointment;
+import edu.mondragon.os.pbl.hospital.Rooms.DiagnosticUnit;
+import edu.mondragon.os.pbl.hospital.Rooms.Hospital;
+import edu.mondragon.os.pbl.hospital.Rooms.WaitingRoom;
 import edu.mondragon.os.pbl.hospital.mailbox.AppointmentMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
@@ -44,11 +51,11 @@ public class App {
             doctors[i] = new Doctor(i, duServer);
         }
         for (int i = 0; i < NUMMACHINES; i++) {
-            machines[i] = new Machine(i, hoServer);
+            machines[i] = new Machine(i, hoServer,waServer);
         }
         appoiment = new Thread(new Appointment(apServer));
         waitingRoom = new Thread(new WaitingRoom(waServer));
-        hospital = new Thread(new Hospital(hoServer, waServer, NUMMACHINES));
+        hospital = new Thread(new Hospital(hoServer, NUMMACHINES));
         diagnosticUnit = new Thread(new DiagnosticUnit(duServer));
 
     }

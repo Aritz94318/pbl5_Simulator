@@ -1,5 +1,6 @@
-package edu.mondragon.os.pbl.hospital;
+package edu.mondragon.os.pbl.hospital.Rooms;
 
+import edu.mondragon.os.pbl.hospital.Values.Diagnostic;
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 
@@ -14,8 +15,8 @@ public class DiagnosticUnit implements Runnable {
     private static final double POSITIVE_PROBABILITY = 0.3;
     private static final double CHANGE_PROBABILITY = 0.34;
 
-    private final ArrayList<Diagnostic> positiveDiagnostics = new ArrayList<Diagnostic>();
-    private final ArrayList<Diagnostic> negativeDiagnostics = new ArrayList<Diagnostic>();
+    private final ArrayList<Diagnostic> positiveDiagnostics = new ArrayList<>();
+    private final ArrayList<Diagnostic> negativeDiagnostics = new ArrayList<>();
     private final Map<Integer, Diagnostic> doctorsDiagnostics = new HashMap<>();
 
     public DiagnosticUnit(BlockingQueue<DiagnosticUnitMessage> mailbox) {
@@ -32,7 +33,7 @@ public class DiagnosticUnit implements Runnable {
                     break;
                 }
 
-                if (msg.type.equals("PASS MAMOGRAPH IN AI")) {
+                if (msg.type.equals("PASS MAMOGRAPH IN AI")) {//
 
                     double randomValue = Math.random();
 
@@ -46,7 +47,6 @@ public class DiagnosticUnit implements Runnable {
                     } else {
                         negativeDiagnostics.add(diagnostic);
                     }
-
 
                     // Responder al que envió la mamografía
                     msg.replyTo.put(new Message("", result, null));
@@ -101,9 +101,10 @@ public class DiagnosticUnit implements Runnable {
                                 diagnosis.setPositive("MALIGNO");
                             }
                         }
+                        BlockingQueue<Message> mb = diagnosis.getReplyTo();
+                        mb.put(new Message("End", "" + diagnosis.getDiagnosis(), null));
+
                     }
-                    BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                    mb.put(new Message("End", "" + diagnosis.getDiagnosis(), null));
 
                 }
 
