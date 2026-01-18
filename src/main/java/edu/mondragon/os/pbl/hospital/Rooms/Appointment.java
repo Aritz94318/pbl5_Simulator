@@ -21,7 +21,6 @@ public class Appointment implements Runnable {
             while (true) {
                 
                 AppointmentMessage msg = mailbox.take(); // espera solicitudes
-                Thread.sleep(2000);
                 if (msg.type.equals("STOP")) {
                     break;
                 }
