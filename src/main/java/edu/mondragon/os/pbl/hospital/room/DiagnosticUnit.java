@@ -2,7 +2,7 @@ package edu.mondragon.os.pbl.hospital.room;
 
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
-import edu.mondragon.os.pbl.hospital.Values.Diagnostic;
+import edu.mondragon.os.pbl.hospital.values.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.SimulationFilter;
+package edu.mondragon.os.pbl.hospital.simulationfilter;
 
 import java.util.concurrent.Semaphore;
 
