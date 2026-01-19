@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
+import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
 
 public class WaitingRoom implements Runnable {
     private int currentTurn;
@@ -13,7 +14,7 @@ public class WaitingRoom implements Runnable {
 
     private final BlockingQueue<WaitingRoomMessage> mailbox;
     private long t0;
-
+    private SimulationService service;
     // ticket -> WAIT msg (contiene replyTo del paciente)
     private final Map<Integer, WaitingRoomMessage> backlogByPatient = new HashMap<>();
 
@@ -21,12 +22,14 @@ public class WaitingRoom implements Runnable {
         this.mailbox = mailbox;
         this.currentTurn = 1; // si tus tickets empiezan en 0, pon 0
         this.freeMachines = 0;
+        this.service = service;
     }
 
     private void log(String emoji, String phase, String msg) {
         long ms = System.currentTimeMillis() - t0;
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, "Waiting Room", phase, msg);
+
     }
 
     @Override
@@ -45,7 +48,6 @@ public class WaitingRoom implements Runnable {
                     case "WAIT": {
                         int ticket = Integer.parseInt(msg.content);
                         backlogByPatient.put(ticket, msg);
-                        log("🧍", "WAIT", "Patient arrives with ticket #" + ticket);
 
                         releaseIfPossible();
                         break;
@@ -54,7 +56,6 @@ public class WaitingRoom implements Runnable {
 
                     case "NEXT_PATIENT": {
                         freeMachines++;
-                        log("🟢", "MACHINE", "Machine is free. freeMachines=" + freeMachines);
 
                         releaseIfPossible();
                         break;

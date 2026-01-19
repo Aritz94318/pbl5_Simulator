@@ -53,7 +53,7 @@ public class DiagnosticUnit implements Runnable {
                     }
 
                     // Responder al que envió la mamografía
-                    msg.replyTo.put(new Message("", result, null));
+                    msg.replyTo.put(new Message("AI_RESULT", result, null));
 
                 }
 
@@ -66,10 +66,10 @@ public class DiagnosticUnit implements Runnable {
                         if (!positiveDiagnostics.isEmpty()) {
                             Diagnostic take = positiveDiagnostics.remove(0);
                             doctorsDiagnostics.put(Integer.parseInt(msg.content), take);
-                            msg.replyTo.put(new Message("null", "null", null));
+                            msg.replyTo.put(new Message("CASE_ASSIGNED", "OK", null));
                             Diagnostic diagnosis = doctorsDiagnostics.get(Integer.parseInt(msg.content));
                             BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                            mb.put(new Message("End", "" + diagnosis.getDiagnosis(), null));
+                            mb.put(new Message("PRELIM_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
                         } else {
                             // No hay positivos: reencolar la petición
                             mailbox.put(msg);
@@ -79,10 +79,10 @@ public class DiagnosticUnit implements Runnable {
                     } else if ((!negativeDiagnostics.isEmpty())) {
                         Diagnostic take = negativeDiagnostics.remove(0);
                         doctorsDiagnostics.put(Integer.parseInt(msg.content), take);
-                        msg.replyTo.put(new Message("null", "null", null));
+                        msg.replyTo.put(new Message("CASE_ASSIGNED", "OK", null));
                         Diagnostic diagnosis = doctorsDiagnostics.get(Integer.parseInt(msg.content));
                         BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                        mb.put(new Message("End", "" + diagnosis.getDiagnosis(), null));
+                        mb.put(new Message("PRELIM_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
                     } else {
                         // No hay positivos: reencolar la petición
                         mailbox.put(msg);
@@ -111,8 +111,7 @@ public class DiagnosticUnit implements Runnable {
                             }
                         }
                         BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                        mb.put(new Message("End", "" + diagnosis.getDiagnosis(), null));
-
+                        mb.put(new Message("FINAL_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
                     }
 
                 }

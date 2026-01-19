@@ -1,5 +1,7 @@
 package edu.mondragon.os.pbl.hospital.simulationfilter;
 
+import java.util.concurrent.Semaphore;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import org.springframework.http.HttpEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class SimulationService {
+    Semaphore sem = new Semaphore(1, true);
 
     public static void postSimEvent(String type, int id, String action, long ts) {
 
@@ -49,6 +52,13 @@ public class SimulationService {
             // Importante: no romper la simulación si el backend no está activo
             System.err.println("⚠️ No se pudo enviar el tiempo final: " + e.getMessage());
         }
+    }
+
+    public void postList(String type, int id, String action, long ts) throws InterruptedException {
+        sem.acquire();
+        postSimEvent(type,id,action,ts);
+        Thread.sleep(100);
+        sem.release();
     }
 
 }
