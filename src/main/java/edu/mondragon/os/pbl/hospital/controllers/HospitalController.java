@@ -73,7 +73,7 @@ public class HospitalController {
                 System.out.println("🏁 Simulación terminada");
                 long endNs = System.nanoTime();
                 long elapsedNs = endNs - startNs;
-                SimulationService.sendFinalTime(elapsedNs);
+                //SimulationService.sendFinalTime(elapsedNs);
             } catch (Exception e) {
                 e.printStackTrace();
             }
