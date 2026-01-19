@@ -1,5 +1,7 @@
 package edu.mondragon.os.pbl.hospital.SimulationFilter;
 
+import java.util.concurrent.Semaphore;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +21,8 @@ public class SimulationService {
     private static final RestTemplate restTemplate = new RestTemplate();
     private static final String API_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/events";
     private static final String FINAL_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/final";
+
+    Semaphore sem = new Semaphore(1, true);
 
     public static void postSimEvent(String type, int id, String action, long ts) {
         if (!backendAvailable) {
@@ -59,4 +63,12 @@ public class SimulationService {
     public static void shutdown() {
         asyncExecutor.shutdown();
     }
+
+    public void postList(String type, int id, String action, long ts) throws InterruptedException {
+        sem.acquire();
+        postSimEvent(type,id,action,ts);
+        Thread.sleep(100);
+        sem.release();
+    }
+
 }

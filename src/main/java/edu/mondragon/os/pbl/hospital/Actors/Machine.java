@@ -16,20 +16,23 @@ public class Machine extends Thread {
     private final BlockingQueue<Message> myMailbox;
     private long t0;
     private final BlockingQueue<WaitingRoomMessage> waitingmailbox;
+    SimulationService service;
 
-    public Machine(int id, BlockingQueue<HospitalMessage> hospital, BlockingQueue<WaitingRoomMessage> waitingmailbox) {
+    public Machine(int id, BlockingQueue<HospitalMessage> hospital, BlockingQueue<WaitingRoomMessage> waitingmailbox,
+            SimulationService service) {
         super("Machine " + id);
         this.hospital = hospital;
         this.myMailbox = new LinkedBlockingQueue<>();
         this.id = id;
         this.waitingmailbox = waitingmailbox;
         this.reply = new Message("", "", null);
+        this.service = service;
     }
 
-    private void log(String emoji, String phase, String msg) {
+    private void log(String emoji, String phase, String msg) throws InterruptedException {
         long ms = System.currentTimeMillis() - t0;
         String text = emoji + " [" + phase + "]" + msg;
-        SimulationService.postSimEvent("MACHINE", id, text, ms);
+        service.postList("MACHINE", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
     }
@@ -38,7 +41,6 @@ public class Machine extends Thread {
     public void run() {
 
         t0 = System.currentTimeMillis();
-        log("🛠️", "START", "Encendida y lista");
 
         while (!Thread.interrupted()) {
             try {
@@ -53,7 +55,7 @@ public class Machine extends Thread {
     }
 
     public void beMachine(int machineId) throws InterruptedException {
-
+        log("🟢", "MACHINE", "Machine is free");
         hospital.put(new HospitalMessage("FREE_MACHINE", "" + id, myMailbox));
         waitingmailbox.put(new WaitingRoomMessage("NEXT_PATIENT", "Need patient", myMailbox));
 
@@ -69,6 +71,8 @@ public class Machine extends Thread {
 
         Thread.sleep(100); // time it takes the patient to undergo the mammography
         hospital.put(new HospitalMessage("MAMOGRAPHY_HAS_FINISH", "" + id, myMailbox));
+        log("⏳", "MAMMOGRAPHY", "Waiting fot the patient to leave");
+
         hospital.put(new HospitalMessage("PATIENT_HAS_GO?", "" + id, myMailbox)); // waits until the patient leaves
         reply = myMailbox.take();
 

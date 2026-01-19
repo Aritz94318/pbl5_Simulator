@@ -25,9 +25,11 @@ public class Patient extends Thread {
     private String appoimentId;
     private Message reply;
     private long t0;
+    private SimulationService service;
 
     public Patient(int id, BlockingQueue<AppointmentMessage> appoiment, BlockingQueue<HospitalMessage> hospital,
-            BlockingQueue<WaitingRoomMessage> waitingroom, BlockingQueue<DiagnosticUnitMessage> diagnosticUnit) {
+            BlockingQueue<WaitingRoomMessage> waitingroom, BlockingQueue<DiagnosticUnitMessage> diagnosticUnit,
+            SimulationService service) {
         super("Patient" + id);
         this.id = id;
         this.appoiment = appoiment;
@@ -36,7 +38,7 @@ public class Patient extends Thread {
         this.diagnosticUnit = diagnosticUnit;
         this.myMailbox = new LinkedBlockingQueue<>();
         appoimentId = "";
-
+        this.service = service;
         rand = new Random();
     }
 
@@ -56,7 +58,7 @@ public class Patient extends Thread {
             appoimentId = reply.content;
             log("✅", "APPOINTMENT", "Receives appointment #" + appoimentId);
 
-            log("🪑", "WAITING_ROOM", "Enters the waiting room (turn " + appoimentId + ")");
+            log("🧍", "WAIT", "Patient arrives with ticket #" + appoimentId);
             waitingroom.put(new WaitingRoomMessage("WAIT", appoimentId, myMailbox));
 
             reply = myMailbox.take();
@@ -87,11 +89,12 @@ public class Patient extends Thread {
                                                                                          // hospitalentra en un sleep
                                                                                          // que simula el tiempo
 
-        reply = myMailbox.take();
         log("🩻", "MAMMO", "Mammography in progress on machine #" + assignedMachine + "...");
+        hospital.put(new HospitalMessage("HAS_FINISH_THE_MAMOGRAPHY", "" + id, myMailbox));// Cuando envia esto a
+        reply = myMailbox.take();
+        log("🧍‍♂️", "MAMMO", "Mammography has finis preparing to leave");
 
         hospital.put(new HospitalMessage("PREPARING_FOR_LEAVING", "" + id, myMailbox));// Cuando envia esto a
-        reply = myMailbox.take();
         log("🏁", "LEAVING",
                 "Permission granted to leave hospital (msg=" + reply.type + ", machine=" + reply.content + ")");
 
@@ -116,10 +119,10 @@ public class Patient extends Thread {
 
     }
 
-    private void log(String emoji, String phase, String msg) {
+    private void log(String emoji, String phase, String msg) throws InterruptedException {
         long ms = System.currentTimeMillis() - t0;
         String text = emoji + " [" + phase + "]" + msg;
-        SimulationService.postSimEvent("PATIENT", id, text, ms);
+        service.postList("PATIENT", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
     }

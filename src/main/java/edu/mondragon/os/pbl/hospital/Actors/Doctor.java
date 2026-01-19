@@ -13,18 +13,21 @@ public class Doctor extends Thread {
     private final BlockingQueue<Message> myMailbox;
     private int id;
     private long t0;
+    private SimulationService service;
 
-    public Doctor(int id, BlockingQueue<DiagnosticUnitMessage> diagnosticUnit) {
+    public Doctor(int id, BlockingQueue<DiagnosticUnitMessage> diagnosticUnit, SimulationService service) {
         super("Doctor " + id);
         this.id = id;
         this.diagnosticUnit = diagnosticUnit;
         this.myMailbox = new LinkedBlockingQueue<>();
+        this.service = service;
+
     }
 
-    private void log(String emoji, String phase, String msg) {
+    private void log(String emoji, String phase, String msg) throws InterruptedException {
         long ms = System.currentTimeMillis() - t0;
         String text = emoji + " [" + phase + "]" + msg;
-        SimulationService.postSimEvent("DOCTOR", id, text, ms);
+        service.postList("DOCTOR", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
     }

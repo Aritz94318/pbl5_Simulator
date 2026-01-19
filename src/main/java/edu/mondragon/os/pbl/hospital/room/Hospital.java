@@ -62,7 +62,7 @@ public class Hospital implements Runnable {
                     case "WAITING_PATIENT":
                         ms = machines.get(Integer.parseInt(msg.content));
 
-                        if (ms == null || ms.patientId == -1) {
+                        if (ms.patientId == -1) {
                             backlogByPhase.put("WA" + msg.content, msg);
                             break; // primera máquina libre
                         }
@@ -90,7 +90,7 @@ public class Hospital implements Runnable {
                         machineId = Integer.parseInt(msg.content);
                         ms = machines.get(machineId);
                         ps = patiens.get(ms.patientId);
-                        if (ps.changing) { // si está cambiándose, NO está listo
+                        if (!ps.changing) { // si está cambiándose, NO está listo
                             backlogByPhase.put("PIR" + machineId, msg);
                             break;
                         }
@@ -101,28 +101,33 @@ public class Hospital implements Runnable {
                     case "PREPARING_FOR_MAMOGRAFY":
                         patientId = Integer.parseInt(msg.content);
                         ps = patiens.get(patientId);
+                        ps.changing = true;
                         pulledOfTheBacklog("PIR" + ps.machineId);
-
-                        msg.replyTo.put(new Message("PATIENT_IS_READY", "" + ps.machineId, null));
                         break;
                     case "MAMOGRAPHY_HAS_FINISH":
                         machineId = Integer.parseInt(msg.content);
                         ms = machines.get(machineId);
                         ms.mamographiDone = true;
-                        pulledOfTheBacklog("PFL" + ms.patientId);
+                        pulledOfTheBacklog("MHF" + ms.patientId);
+                        break;
+                    case "HAS_FINISH_THE_MAMOGRAPHY":
+                        patientId = Integer.parseInt(msg.content);
+                        ps = patiens.get(patientId);
+                        ms = machines.get(ps.machineId);
+                        if (!ms.mamographiDone) {
+                            backlogByPhase.put("MHF" + patientId, msg);
+                            break;
+                        }
+                        msg.replyTo.put(new Message("YOU_CAN_LEAVE", "" + ps.machineId, null));
+
                         break;
 
                     case "PREPARING_FOR_LEAVING":
                         patientId = Integer.parseInt(msg.content);
                         ps = patiens.get(patientId);
                         ms = machines.get(ps.machineId);
-                        if (!ms.mamographiDone) {
-                            backlogByPhase.put("PFL" + patientId, msg);
-                            break;
-                        }
                         ps.gone = true;
                         pulledOfTheBacklog("PHG" + ps.machineId);
-                        msg.replyTo.put(new Message("YOU_CAN_LEAVE", "" + ps.machineId, null));
                         break;
                     case "PATIENT_HAS_GO?":
                         machineId = Integer.parseInt(msg.content);
@@ -161,7 +166,7 @@ public class Hospital implements Runnable {
     public int setPatient() {
         for (int id = 0; id < numMachines; id++) {
 
-             ms = machines.get(id);
+            ms = machines.get(id);
             if (ms != null && ms.isFree) {
                 return id; // primera máquina libre
             }
