@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.actors;
+package edu.mondragon.os.pbl.hospital.Actors;
 
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
@@ -9,7 +9,7 @@ import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
-import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
+import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
 
 public class Patient extends Thread {
 
