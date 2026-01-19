@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.Rooms;
+package edu.mondragon.os.pbl.hospital.room;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,7 @@ public class WaitingRoom implements Runnable {
 
     public WaitingRoom(BlockingQueue<WaitingRoomMessage> mailbox) {
         this.mailbox = mailbox;
-        this.currentTurn = 1;   // si tus tickets empiezan en 0, pon 0
+        this.currentTurn = 1; // si tus tickets empiezan en 0, pon 0
         this.freeMachines = 0;
     }
 
@@ -37,22 +37,24 @@ public class WaitingRoom implements Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 WaitingRoomMessage msg = mailbox.take();
 
-                if ("STOP".equals(msg.type)) break;
+                if ("STOP".equals(msg.type))
+                    break;
 
                 switch (msg.type) {
 
                     case "WAIT": {
                         int ticket = Integer.parseInt(msg.content);
                         backlogByPatient.put(ticket, msg);
-                        log("🧍", "WAIT", "Llega paciente ticket=" + ticket);
+                        log("🧍", "WAIT", "Patient arrives with ticket #" + ticket);
 
                         releaseIfPossible();
                         break;
+
                     }
 
                     case "NEXT_PATIENT": {
                         freeMachines++;
-                        log("🟢", "MACHINE", "Máquina libre. freeMachines=" + freeMachines);
+                        log("🟢", "MACHINE", "Machine is free. freeMachines=" + freeMachines);
 
                         releaseIfPossible();
                         break;
@@ -70,11 +72,12 @@ public class WaitingRoom implements Runnable {
     private void releaseIfPossible() throws InterruptedException {
         while (freeMachines > 0) {
             WaitingRoomMessage next = backlogByPatient.remove(currentTurn);
-            if (next == null) return; // aún no llegó el paciente de este turno
+            if (next == null)
+                return; // aún no llegó el paciente de este turno
 
             // Ahora SÍ es su turno
             next.replyTo.put(new Message("YOUR_TURN", "" + currentTurn, null));
-            log("📢", "DISPLAY", "🔊 TURNO #" + currentTurn + " → pase por favor");
+            log("📢", "DISPLAY", "🔊 TURN #" + currentTurn + " → please proceed");
 
             currentTurn++;
             freeMachines--; // 👈 esto faltaba sí o sí

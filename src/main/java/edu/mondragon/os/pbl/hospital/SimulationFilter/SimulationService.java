@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.SimulationFilter;
+package edu.mondragon.os.pbl.hospital.simulationfilter;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -15,7 +15,7 @@ public class SimulationService {
     public static void postSimEvent(String type, int id, String action, long ts) {
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8080/api/sim/events";
+        String url = "https://node-red-591094411846.europe-west1.run.app/api/sim/events";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -40,7 +40,7 @@ public class SimulationService {
         try {
 
             RestTemplate restTemplate = new RestTemplate();
-            String url = "http://localhost:8080/api/sim/final";
+            String url = "https://node-red-591094411846.europe-west1.run.app/api/sim/final";
             restTemplate.postForEntity(
                     url,
                     timeNanoSeconds,
