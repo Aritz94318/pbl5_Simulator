@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.Rooms;
+package edu.mondragon.os.pbl.hospital.room;
 
 
 import java.util.concurrent.BlockingQueue;
