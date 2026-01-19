@@ -1,11 +1,11 @@
-package edu.mondragon.os.pbl.hospital.actors;
+package edu.mondragon.os.pbl.hospital.Actors;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
-import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
+import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
 
 public class Doctor extends Thread {
 

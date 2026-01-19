@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.values;
+package edu.mondragon.os.pbl.hospital.Values;
 
 import org.springframework.stereotype.Component;
 

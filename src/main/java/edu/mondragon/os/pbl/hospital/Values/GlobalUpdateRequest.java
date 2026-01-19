@@ -1,4 +1,5 @@
-package edu.mondragon.os.pbl.hospital.values;
+package edu.mondragon.os.pbl.hospital.Values;
+
 
 public class GlobalUpdateRequest {
     private int numPatients;

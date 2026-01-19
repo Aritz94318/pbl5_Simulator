@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.mondragon.os.pbl.hospital.App;
-import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
-import edu.mondragon.os.pbl.hospital.values.GlobalState;
-import edu.mondragon.os.pbl.hospital.values.GlobalUpdateRequest;
+import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
+import edu.mondragon.os.pbl.hospital.Values.GlobalState;
+import edu.mondragon.os.pbl.hospital.Values.GlobalUpdateRequest;
 
 @RestController
 @CrossOrigin(maxAge = 3600)

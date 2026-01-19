@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.simulationfilter;
+package edu.mondragon.os.pbl.hospital.SimulationFilter;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpEntity;
