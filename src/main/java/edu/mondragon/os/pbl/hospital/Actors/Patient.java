@@ -82,6 +82,7 @@ public class Patient extends Thread {
         log("✅", "HOSPITAL", "Machine assigned: #" + assignedMachine + " (msg=" + reply.type + ")");
 
         log("🧍‍♂️", "MAMMO_PREP", "Getting ready for mammography in machine #" + assignedMachine);
+        Thread.sleep(100); // 100 ms
         hospital.put(new HospitalMessage("PREPARING_FOR_MAMOGRAFY", "" + id, myMailbox));// Cuando envia esto a
                                                                                          // hospitalentra en un sleep
                                                                                          // que simula el tiempo

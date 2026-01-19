@@ -64,9 +64,10 @@ public class Machine extends Thread {
         hospital.put(new HospitalMessage("PATIENT_IS_READY?", "" + id, myMailbox));
         reply = myMailbox.take();
         log("🎛️", "MAMMOGRAPHY", "Starting mammography on patient " + reply.content);
-        log("⏳", "MAMMOGRAPHY", "Performing mammography...");
+        Thread.sleep(150);
+        log("⏳", "MAMMOGRAPHY", "Finis mammography...");
 
-        Thread.sleep(1300); // time it takes the patient to undergo the mammography
+        Thread.sleep(100); // time it takes the patient to undergo the mammography
         hospital.put(new HospitalMessage("MAMOGRAPHY_HAS_FINISH", "" + id, myMailbox));
         hospital.put(new HospitalMessage("PATIENT_HAS_GO?", "" + id, myMailbox)); // waits until the patient leaves
         reply = myMailbox.take();

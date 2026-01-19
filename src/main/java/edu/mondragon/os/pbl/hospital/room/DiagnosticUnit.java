@@ -14,6 +14,8 @@ public class DiagnosticUnit implements Runnable {
     private final BlockingQueue<DiagnosticUnitMessage> mailbox;
     private static final double POSITIVE_PROBABILITY = 0.3;
     private static final double CHANGE_PROBABILITY = 0.34;
+    private static final double INCONCLUSIVE_PROBABILITY = 0.4;
+
     private static final String MALIGNO = "MALIGNO";
     private static final String VENIGNO = "VENIGNO";
 
@@ -94,11 +96,16 @@ public class DiagnosticUnit implements Runnable {
                     Diagnostic diagnosis = doctorsDiagnostics.remove(Integer.parseInt(msg.content));
                     if (diagnosis != null) {
                         double randomValue = Math.random();
+                        double inconclusiveValue = Math.random();
 
                         boolean isPositive = randomValue < CHANGE_PROBABILITY;
+                        boolean isInconclusive = inconclusiveValue < INCONCLUSIVE_PROBABILITY;
+
                         if (isPositive) {
                             if (diagnosis.getDiagnosis().equals(MALIGNO)) {
                                 diagnosis.setPositive(VENIGNO);
+                            } else if (isInconclusive) {
+                                diagnosis.setPositive("INCONCLUSIVE");
                             } else {
                                 diagnosis.setPositive(MALIGNO);
                             }
