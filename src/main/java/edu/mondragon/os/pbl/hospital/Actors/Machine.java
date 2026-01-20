@@ -56,7 +56,10 @@ public class Machine extends Thread {
 
     public void beMachine(int machineId) throws InterruptedException {
         log("🟢", "MACHINE", "Machine is free");
+        
         hospital.put(new HospitalMessage("FREE_MACHINE", "" + id, myMailbox));
+        reply = myMailbox.take();
+
         waitingmailbox.put(new WaitingRoomMessage("NEXT_PATIENT", "Need patient", myMailbox));
 
         hospital.put(new HospitalMessage("WAITING_PATIENT", "" + id, myMailbox));

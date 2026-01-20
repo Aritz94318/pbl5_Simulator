@@ -58,6 +58,7 @@ public class Hospital implements Runnable {
                         ms.mamographiDone = false;
                         ms.patientId = -1;
                         ms.isFree = true;
+                        msg.replyTo.put(new Message("FREE_MACHINE_SAVED", "" + ms.patientId, null));
                         break;
                     case "WAITING_PATIENT":
                         ms = machines.get(Integer.parseInt(msg.content));
@@ -70,10 +71,10 @@ public class Hospital implements Runnable {
                         break;
                     case "ANY_FREE_MACHINE":
                         int where = setPatient();
-                        if (where == -1) {
+                        /*if (where == -1) {
                             backlogByPhase.put("AFM" + msg.content, msg);
                             break;
-                        }
+                        }*/
                         ps = patiens.computeIfAbsent(Integer.parseInt(msg.content),
                                 id -> new PatientState());
                         ps.machineId = where;

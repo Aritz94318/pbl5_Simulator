@@ -49,7 +49,7 @@ public class Patient extends Thread {
             t0 = System.currentTimeMillis();
 
             log("🚶‍♂️", "ARRIVAL", "Arrives at the hospital");
-            Thread.sleep(rand.nextInt(800)); // Arrival time and requesting an appointment
+            Thread.sleep(rand.nextInt(8000)); // Arrival time and requesting an appointment
 
             log("📅", "APPOINTMENT", "Requests an appointment");
             appoiment.put(new AppointmentMessage("REQUEST_APPOINTMENT", "" + id, myMailbox));
@@ -84,7 +84,7 @@ public class Patient extends Thread {
         log("✅", "HOSPITAL", "Machine assigned: #" + assignedMachine + " (msg=" + reply.type + ")");
 
         log("🧍‍♂️", "MAMMO_PREP", "Getting ready for mammography in machine #" + assignedMachine);
-        Thread.sleep(100); // 100 ms
+        Thread.sleep(1000); // 100 ms
         hospital.put(new HospitalMessage("PREPARING_FOR_MAMOGRAFY", "" + id, myMailbox));// Cuando envia esto a
                                                                                          // hospitalentra en un sleep
                                                                                          // que simula el tiempo
@@ -93,6 +93,7 @@ public class Patient extends Thread {
         hospital.put(new HospitalMessage("HAS_FINISH_THE_MAMOGRAPHY", "" + id, myMailbox));// Cuando envia esto a
         reply = myMailbox.take();
         log("🧍‍♂️", "MAMMO", "Mammography has finis preparing to leave");
+        Thread.sleep(rand.nextInt(8000)+1000); // 100 ms
 
         hospital.put(new HospitalMessage("PREPARING_FOR_LEAVING", "" + id, myMailbox));// Cuando envia esto a
         log("🏁", "LEAVING",

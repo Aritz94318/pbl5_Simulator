@@ -54,11 +54,14 @@ public class DiagnosticUnit implements Runnable {
                         negativeDiagnostics.add(diagnostic);
                     }
                     msg.replyTo.put(new Message("AI_RESULT", result, null));
-                    mailbox.put(backlog.remove(0));
+                    DiagnosticUnitMessage md = backlog.remove(0);
+                    if (md != null) {
+                        mailbox.put(md);
+                    }
 
                 }
 
-                if (msg.type.equals("Get Diagnosis")) {
+                if (msg.type.equals("GET_DIAGNOSIS")) {
                     boolean wantPositive = Math.random() < POSITIVE_PROBABILITY;
 
                     ArrayList<Diagnostic> list = wantPositive ? positiveDiagnostics : negativeDiagnostics;
@@ -72,7 +75,7 @@ public class DiagnosticUnit implements Runnable {
                     }
                 }
 
-                if (msg.type.equals("FINAL DIAGNOSIS")) {
+                if (msg.type.equals("FINAL_DIAGNOSIS")) {
                     Diagnostic diagnosis = doctorsDiagnostics.remove(Integer.parseInt(msg.content));
                     if (diagnosis != null) {
                         double randomValue = Math.random();
