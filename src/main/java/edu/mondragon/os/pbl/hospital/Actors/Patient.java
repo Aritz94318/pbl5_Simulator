@@ -92,7 +92,7 @@ public class Patient extends Thread {
         log("🩻", "MAMMO", "Mammography in progress on machine #" + assignedMachine + "...");
         hospital.put(new HospitalMessage("HAS_FINISH_THE_MAMOGRAPHY", "" + id, myMailbox));// Cuando envia esto a
         reply = myMailbox.take();
-        log("🧍‍♂️", "MAMMO", "Mammography has finis preparing to leave");
+        log("🧍‍♂️", "MAMMO", "Mammography has finished preparing to leave");
         Thread.sleep(rand.nextInt(8000)+1000); // 100 ms
 
         hospital.put(new HospitalMessage("PREPARING_FOR_LEAVING", "" + id, myMailbox));// Cuando envia esto a

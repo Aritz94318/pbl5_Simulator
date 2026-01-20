@@ -69,7 +69,7 @@ public class Machine extends Thread {
         reply = myMailbox.take();
         log("🎛️", "MAMMOGRAPHY", "Starting mammography on patient " + reply.content);
         Thread.sleep(150);
-        log("⏳", "MAMMOGRAPHY", "Finis mammography...");
+        log("⏳", "MAMMOGRAPHY", "Finished mammography...");
 
         Thread.sleep(100); // time it takes the patient to undergo the mammography
         hospital.put(new HospitalMessage("MAMOGRAPHY_HAS_FINISH", "" + id, myMailbox));
