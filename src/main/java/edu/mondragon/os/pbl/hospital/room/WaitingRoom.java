@@ -1,4 +1,4 @@
-package edu.mondragon.os.pbl.hospital.Rooms;
+package edu.mondragon.os.pbl.hospital.room;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.mailbox.WaitingRoomMessage;
+import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
 
 public class WaitingRoom implements Runnable {
     private int currentTurn;
@@ -13,20 +14,22 @@ public class WaitingRoom implements Runnable {
 
     private final BlockingQueue<WaitingRoomMessage> mailbox;
     private long t0;
-
+    private SimulationService service;
     // ticket -> WAIT msg (contiene replyTo del paciente)
     private final Map<Integer, WaitingRoomMessage> backlogByPatient = new HashMap<>();
 
     public WaitingRoom(BlockingQueue<WaitingRoomMessage> mailbox) {
         this.mailbox = mailbox;
-        this.currentTurn = 1;   // si tus tickets empiezan en 0, pon 0
+        this.currentTurn = 1; // si tus tickets empiezan en 0, pon 0
         this.freeMachines = 0;
+        this.service = service;
     }
 
     private void log(String emoji, String phase, String msg) {
         long ms = System.currentTimeMillis() - t0;
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, "Waiting Room", phase, msg);
+
     }
 
     @Override
@@ -37,22 +40,22 @@ public class WaitingRoom implements Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 WaitingRoomMessage msg = mailbox.take();
 
-                if ("STOP".equals(msg.type)) break;
+                if ("STOP".equals(msg.type))
+                    break;
 
                 switch (msg.type) {
 
                     case "WAIT": {
                         int ticket = Integer.parseInt(msg.content);
                         backlogByPatient.put(ticket, msg);
-                        log("🧍", "WAIT", "Llega paciente ticket=" + ticket);
 
                         releaseIfPossible();
                         break;
+
                     }
 
                     case "NEXT_PATIENT": {
                         freeMachines++;
-                        log("🟢", "MACHINE", "Máquina libre. freeMachines=" + freeMachines);
 
                         releaseIfPossible();
                         break;
@@ -70,11 +73,12 @@ public class WaitingRoom implements Runnable {
     private void releaseIfPossible() throws InterruptedException {
         while (freeMachines > 0) {
             WaitingRoomMessage next = backlogByPatient.remove(currentTurn);
-            if (next == null) return; // aún no llegó el paciente de este turno
+            if (next == null)
+                return; // aún no llegó el paciente de este turno
 
             // Ahora SÍ es su turno
             next.replyTo.put(new Message("YOUR_TURN", "" + currentTurn, null));
-            log("📢", "DISPLAY", "🔊 TURNO #" + currentTurn + " → pase por favor");
+            log("📢", "DISPLAY", "🔊 TURN #" + currentTurn + " → please proceed");
 
             currentTurn++;
             freeMachines--; // 👈 esto faltaba sí o sí

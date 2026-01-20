@@ -1,8 +1,6 @@
 package edu.mondragon.os.pbl.hospital.controllers;
 
-import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,14 +8,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.mondragon.os.pbl.hospital.App;
-import edu.mondragon.os.pbl.hospital.SimulationApplication;
-import edu.mondragon.os.pbl.hospital.SimulationFilter.SimulationService;
-import edu.mondragon.os.pbl.hospital.Values.GlobalState;
-import edu.mondragon.os.pbl.hospital.Values.GlobalUpdateRequest;
+import edu.mondragon.os.pbl.hospital.simulationfilter.SimulationService;
+import edu.mondragon.os.pbl.hospital.values.GlobalState;
+import edu.mondragon.os.pbl.hospital.values.GlobalUpdateRequest;
 
 @RestController
 @CrossOrigin(maxAge = 3600)
@@ -25,15 +21,18 @@ import edu.mondragon.os.pbl.hospital.Values.GlobalUpdateRequest;
 public class HospitalController {
 
     private final GlobalState globalState;
+    private final SimulationService simulationService;
 
-    public HospitalController(GlobalState globalState) {
+    public HospitalController(GlobalState globalState,
+                              SimulationService simulationService) {
         this.globalState = globalState;
+        this.simulationService = simulationService;
         globalState.update(1, 1, 1);
     }
 
     @GetMapping(value = "/ping", produces = "application/json")
     public ResponseEntity<String> ping() {
-        return ResponseEntity.ok("Servidor OK");
+        return ResponseEntity.ok("Server OK");
     }
 
     @PutMapping(value = "/modify", consumes = { "application/json", "application/xml" }, produces = {
@@ -43,7 +42,7 @@ public class HospitalController {
         if ((body.getNumPatients() == 0) && (body.getNumDoctors() == 0) && (body.getNumMachines() == 0)) {
             return ResponseEntity.badRequest().build();
         }
-        System.out.println("✅ Entró en /Simulation/modify");
+        System.out.println("✅ Entered /Simulation/modify");
 
         System.out
                 .println("Body: " + body.getNumPatients() + ", " + body.getNumDoctors() + ", " + body.getNumMachines());
@@ -56,7 +55,7 @@ public class HospitalController {
     @PostMapping(value = "/start", produces = { "application/json", "application/xml" })
     public ResponseEntity<GlobalState> startSimulation() {
 
-        System.out.println("✅ Entró en /Simulation/start");
+        System.out.println("✅ Entered /Simulation/start");
 
         new Thread(() -> {
             try {
@@ -70,10 +69,10 @@ public class HospitalController {
                         globalState.getNumPatients(),
                         globalState.getNumDoctors(),
                         globalState.getNumMachines());
-                System.out.println("🏁 Simulación terminada");
+                System.out.println("🏁 Simulation finished");
                 long endNs = System.nanoTime();
                 long elapsedNs = endNs - startNs;
-                SimulationService.sendFinalTime(elapsedNs);
+                simulationService.sendFinalTime(elapsedNs);
             } catch (Exception e) {
                 e.printStackTrace();
             }
