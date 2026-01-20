@@ -17,8 +17,8 @@ public class DiagnosticUnit implements Runnable {
     private static final double CHANGE_PROBABILITY = 0.34;
     private static final double INCONCLUSIVE_PROBABILITY = 0.4;
 
-    private static final String MALIGNO = "MALIGNO";
-    private static final String VENIGNO = "VENIGNO";
+    private static final String MALIGNO = "MALIGNANT";
+    private static final String BENIGNO = "BENIGN";
 
     private final ArrayList<Diagnostic> positiveDiagnostics = new ArrayList<>();
     private final ArrayList<Diagnostic> negativeDiagnostics = new ArrayList<>();
@@ -45,7 +45,7 @@ public class DiagnosticUnit implements Runnable {
 
                     boolean isPositive = randomValue < POSITIVE_PROBABILITY;
 
-                    String result = isPositive ? MALIGNO : VENIGNO;
+                    String result = isPositive ? MALIGNO : BENIGNO;
                     Diagnostic diagnostic = new Diagnostic(msg.content, result, msg.replyTo);
 
                     if (isPositive) {
@@ -88,7 +88,7 @@ public class DiagnosticUnit implements Runnable {
                             diagnosis.setPositive("INCONCLUSIVE");
                         } else if (shouldChange) {
                             if (diagnosis.getDiagnosis().equals(MALIGNO)) {
-                                diagnosis.setPositive(VENIGNO);
+                                diagnosis.setPositive(BENIGNO);
                             } else {
                                 diagnosis.setPositive(MALIGNO);
                             }
