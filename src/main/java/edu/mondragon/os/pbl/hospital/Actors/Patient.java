@@ -105,15 +105,9 @@ public class Patient extends Thread {
         log("🤖", "DIAG_AI", "Mammography sent to AI");
         diagnosticUnit.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "" + id, myMailbox));
 
-        // 1) ACK / received
         reply = myMailbox.take();
         log("📩", "DIAG_AI", "AI has received the mammography. Diagnosis: " + reply.content);
 
-        // 2) AI result
-        reply = myMailbox.take();
-        log("🧠", "DIAG_AI", "AI result: " + reply.content + " → forwarded to specialists");
-
-        // 3) Final diagnosis
         reply = myMailbox.take();
         log("👨‍⚕️", "DIAG_FINAL", "FINAL diagnosis: " + reply.content + " (schedule appointment)");
 

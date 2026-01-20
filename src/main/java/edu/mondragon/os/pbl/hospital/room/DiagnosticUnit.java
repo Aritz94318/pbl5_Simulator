@@ -1,6 +1,7 @@
 package edu.mondragon.os.pbl.hospital.room;
 
 import edu.mondragon.os.pbl.hospital.mailbox.DiagnosticUnitMessage;
+import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.values.Diagnostic;
 
@@ -22,6 +23,7 @@ public class DiagnosticUnit implements Runnable {
     private final ArrayList<Diagnostic> positiveDiagnostics = new ArrayList<>();
     private final ArrayList<Diagnostic> negativeDiagnostics = new ArrayList<>();
     private final Map<Integer, Diagnostic> doctorsDiagnostics = new HashMap<>();
+    private final ArrayList<DiagnosticUnitMessage> backlog = new ArrayList<>();
 
     public DiagnosticUnit(BlockingQueue<DiagnosticUnitMessage> mailbox) {
         this.mailbox = mailbox;
@@ -51,45 +53,23 @@ public class DiagnosticUnit implements Runnable {
                     } else {
                         negativeDiagnostics.add(diagnostic);
                     }
-
-                    // Responder al que envió la mamografía
                     msg.replyTo.put(new Message("AI_RESULT", result, null));
+                    mailbox.put(backlog.remove(0));
 
                 }
 
                 if (msg.type.equals("Get Diagnosis")) {
-                    double randomValue = Math.random();
+                    boolean wantPositive = Math.random() < POSITIVE_PROBABILITY;
 
-                    boolean isPositive = randomValue < POSITIVE_PROBABILITY;
+                    ArrayList<Diagnostic> list = wantPositive ? positiveDiagnostics : negativeDiagnostics;
 
-                    if (isPositive) {
-                        if (!positiveDiagnostics.isEmpty()) {
-                            Diagnostic take = positiveDiagnostics.remove(0);
-                            doctorsDiagnostics.put(Integer.parseInt(msg.content), take);
-                            msg.replyTo.put(new Message("CASE_ASSIGNED", "OK", null));
-                            Diagnostic diagnosis = doctorsDiagnostics.get(Integer.parseInt(msg.content));
-                            BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                            mb.put(new Message("PRELIM_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
-                        } else {
-                            // No hay positivos: reencolar la petición
-                            mailbox.put(msg);
-                            // opcional para no hacer busy-loop
-                            Thread.sleep(10);
-                        }
-                    } else if ((!negativeDiagnostics.isEmpty())) {
-                        Diagnostic take = negativeDiagnostics.remove(0);
+                    if (!list.isEmpty()) {
+                        Diagnostic take = list.remove(0); // SOLO UNA VEZ
                         doctorsDiagnostics.put(Integer.parseInt(msg.content), take);
                         msg.replyTo.put(new Message("CASE_ASSIGNED", "OK", null));
-                        Diagnostic diagnosis = doctorsDiagnostics.get(Integer.parseInt(msg.content));
-                        BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                        mb.put(new Message("PRELIM_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
                     } else {
-                        // No hay positivos: reencolar la petición
-                        mailbox.put(msg);
-                        // opcional para no hacer busy-loop
-                        Thread.sleep(10);
+                        backlog.add(msg);
                     }
-
                 }
 
                 if (msg.type.equals("FINAL DIAGNOSIS")) {
@@ -98,18 +78,20 @@ public class DiagnosticUnit implements Runnable {
                         double randomValue = Math.random();
                         double inconclusiveValue = Math.random();
 
-                        boolean isPositive = randomValue < CHANGE_PROBABILITY;
+                        boolean shouldChange = randomValue < CHANGE_PROBABILITY;
                         boolean isInconclusive = inconclusiveValue < INCONCLUSIVE_PROBABILITY;
 
-                        if (isPositive) {
+                        if (isInconclusive) {
+                            diagnosis.setPositive("INCONCLUSIVE");
+                        } else if (shouldChange) {
                             if (diagnosis.getDiagnosis().equals(MALIGNO)) {
                                 diagnosis.setPositive(VENIGNO);
-                            } else if (isInconclusive) {
-                                diagnosis.setPositive("INCONCLUSIVE");
                             } else {
                                 diagnosis.setPositive(MALIGNO);
                             }
                         }
+                        // else: no cambia, se queda como estaba
+
                         BlockingQueue<Message> mb = diagnosis.getReplyTo();
                         mb.put(new Message("FINAL_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
                     }
@@ -117,7 +99,9 @@ public class DiagnosticUnit implements Runnable {
                 }
 
             }
-        } catch (InterruptedException e) {
+        } catch (
+
+        InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
