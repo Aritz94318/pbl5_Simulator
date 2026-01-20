@@ -1,74 +1,98 @@
 package edu.mondragon.os.pbl.hospital.simulationfilter;
 
-import java.util.concurrent.Semaphore;
-
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestTemplate;
+import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
-@SpringBootApplication
+@Service
 public class SimulationService {
-    
-    private static final ExecutorService asyncExecutor = Executors.newFixedThreadPool(10);
-    private static volatile boolean backendAvailable = true;
-    private static final RestTemplate restTemplate = new RestTemplate();
+
+    private static final Logger log = LoggerFactory.getLogger(SimulationService.class);
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private volatile boolean backendAvailable = true;
+
     private static final String API_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/events";
     private static final String FINAL_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/final";
 
+    private static final String API_KEY = "API_KEY_DEL_ADMIN";
+
+    private final RestTemplate restTemplate;
     Semaphore sem = new Semaphore(1, true);
 
-    public static void postSimEvent(String type, int id, String action, long ts) {
-        if (!backendAvailable) {
-            return; // Silently skip if backend is down
-        }
-        
-        asyncExecutor.submit(() -> {
-            try {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("X-API-KEY", "API_KEY_DEL_ADMIN");
+    public SimulationService() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(2000);
+        factory.setReadTimeout(2000);
 
-                SimEvent event = new SimEvent(type, id, action, ts);
+        this.restTemplate = new RestTemplate(factory);
+    }
+
+    public void postSimEvent(String type, int id, String action, long timestamp) {
+        if (!backendAvailable) {
+            return;
+        }
+
+        executor.submit(() -> {
+            try {
+                HttpHeaders headers = createHeaders();
+                SimEvent event = new SimEvent(type, id, action, timestamp);
                 HttpEntity<SimEvent> request = new HttpEntity<>(event, headers);
 
                 restTemplate.exchange(API_URL, HttpMethod.POST, request, Void.class);
-                
+
+                backendAvailable = true;
+
             } catch (ResourceAccessException e) {
-                System.err.println("⚠️ Node-RED no responde (posible timeout): " + e.getMessage());
                 backendAvailable = false;
+                log.warn("⚠️ Node-RED not responding (timeout/connection): {}", e.getMessage());
             } catch (Exception e) {
-                System.err.println("⚠️ Error enviando evento a Node-RED: " + e.getMessage());
-                // No imprimir stack trace completo para no saturar la consola
+                log.warn("⚠️ couldn´t send event to Node-RED: {}", e.getMessage());
             }
         });
     }
 
-    public static void sendFinalTime(long timeNanoSeconds) {
-        asyncExecutor.submit(() -> {
+    public void sendFinalTime(long timeNanoSeconds) {
+        executor.submit(() -> {
             try {
-                restTemplate.postForEntity(FINAL_URL, timeNanoSeconds, Void.class);
+                HttpHeaders headers = createHeaders();
+
+                SimTime simTime = new SimTime(timeNanoSeconds);
+                HttpEntity<SimTime> request = new HttpEntity<>(simTime, headers);
+
+                restTemplate.exchange(FINAL_URL, HttpMethod.POST, request, Void.class);
+
             } catch (Exception e) {
-                System.err.println("⚠️ No se pudo enviar el tiempo final: " + e.getMessage());
+                log.warn("⚠️ couldn´t send final time: {}", e.getMessage());
             }
         });
     }
-    
-    public static void shutdown() {
-        asyncExecutor.shutdown();
+
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-API-KEY", API_KEY);
+        return headers;
     }
 
     public void postList(String type, int id, String action, long ts) throws InterruptedException {
         sem.acquire();
-        postSimEvent(type,id,action,ts);
+        postSimEvent(type, id, action, ts);
         Thread.sleep(100);
         sem.release();
     }
 
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
+    }
 }
