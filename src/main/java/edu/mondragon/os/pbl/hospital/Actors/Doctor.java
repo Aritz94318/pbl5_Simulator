@@ -36,7 +36,7 @@ public class Doctor extends Thread {
     public void run() {
         t0 = System.currentTimeMillis();
         try {
-            log("🩺", "START", "Listo para trabajar");
+            log("🩺", "START", "Ready for work");
 
             while (!Thread.interrupted()) {
 

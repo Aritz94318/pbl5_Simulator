@@ -59,7 +59,6 @@ public class Machine extends Thread {
         hospital.put(new HospitalMessage("FREE_MACHINE", "" + id, myMailbox));
         waitingmailbox.put(new WaitingRoomMessage("NEXT_PATIENT", "Need patient", myMailbox));
 
-        log("🟢", "AVAILABLE", "Machine " + machineId + " free");
         hospital.put(new HospitalMessage("WAITING_PATIENT", "" + id, myMailbox));
         reply = myMailbox.take();
         log("", "AVAILABLE", "Machine " + machineId + " Waiting for the patient to get ready: " + reply.content);
