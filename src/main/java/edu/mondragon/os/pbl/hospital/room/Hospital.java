@@ -152,7 +152,7 @@ public class Hospital implements Runnable {
 
                     default:
                         throw new IllegalStateException(
-                                "Esperaba APPOINTMENT_GRANTED y llegó: " + msg.type);
+                                "Was expecting APPOINTMENT_GRANTED and received: " + msg.type);
                 }
 
             }
