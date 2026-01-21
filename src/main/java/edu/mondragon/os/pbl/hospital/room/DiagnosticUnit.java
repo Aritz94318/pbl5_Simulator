@@ -35,70 +35,86 @@ public class DiagnosticUnit implements Runnable {
             while (true) {
                 DiagnosticUnitMessage msg = mailbox.take(); // espera solicitudes
 
-                if (msg.type.equals("STOP")) {
-                    break;
-                }
+                switch (msg.type) {
 
-                if (msg.type.equals("PASS MAMOGRAPH IN AI")) {//
+                    case "STOP":
+                        return; // termina el hilo limpiamente
 
-                    double randomValue = Math.random();
-
-                    boolean isPositive = randomValue < POSITIVE_PROBABILITY;
-
-                    String result = isPositive ? MALIGNO : BENIGNO;
-                    Diagnostic diagnostic = new Diagnostic(msg.content, result, msg.replyTo);
-
-                    if (isPositive) {
-                        positiveDiagnostics.add(diagnostic);
-                    } else {
-                        negativeDiagnostics.add(diagnostic);
-                    }
-                    msg.replyTo.put(new Message("AI_RESULT", result, null));
-                    DiagnosticUnitMessage md = backlog.remove(0);
-                    if (md != null) {
-                        mailbox.put(md);
-                    }
-
-                }
-
-                if (msg.type.equals("GET_DIAGNOSIS")) {
-                    boolean wantPositive = Math.random() < POSITIVE_PROBABILITY;
-
-                    ArrayList<Diagnostic> list = wantPositive ? positiveDiagnostics : negativeDiagnostics;
-
-                    if (!list.isEmpty()) {
-                        Diagnostic take = list.remove(0); // SOLO UNA VEZ
-                        doctorsDiagnostics.put(Integer.parseInt(msg.content), take);
-                        msg.replyTo.put(new Message("CASE_ASSIGNED", "OK", null));
-                    } else {
-                        backlog.add(msg);
-                    }
-                }
-
-                if (msg.type.equals("FINAL_DIAGNOSIS")) {
-                    Diagnostic diagnosis = doctorsDiagnostics.remove(Integer.parseInt(msg.content));
-                    if (diagnosis != null) {
+                    case "PASS MAMOGRAPH IN AI": {
                         double randomValue = Math.random();
-                        double inconclusiveValue = Math.random();
+                        boolean isPositive = randomValue < POSITIVE_PROBABILITY;
 
-                        boolean shouldChange = randomValue < CHANGE_PROBABILITY;
-                        boolean isInconclusive = inconclusiveValue < INCONCLUSIVE_PROBABILITY;
+                        String result = isPositive ? MALIGNO : BENIGNO;
+                        Diagnostic diagnostic = new Diagnostic(msg.content, result, msg.replyTo);
 
-                        if (isInconclusive) {
-                            diagnosis.setPositive("INCONCLUSIVE");
-                        } else if (shouldChange) {
-                            if (diagnosis.getDiagnosis().equals(MALIGNO)) {
-                                diagnosis.setPositive(BENIGNO);
-                            } else {
-                                diagnosis.setPositive(MALIGNO);
-                            }
+                        if (isPositive) {
+                            positiveDiagnostics.add(diagnostic);
+                        } else {
+                            negativeDiagnostics.add(diagnostic);
                         }
-                        // else: no cambia, se queda como estaba
 
-                        BlockingQueue<Message> mb = diagnosis.getReplyTo();
-                        mb.put(new Message("FINAL_DIAGNOSIS", "" + diagnosis.getDiagnosis(), null));
+                        // Respuesta inmediata al actor que envió la mamografía
+                        msg.replyTo.put(new Message("AI_RESULT", result, null));
+
+                        // Liberar backlog si existe
+                        if (!backlog.isEmpty()) {
+                            DiagnosticUnitMessage md = backlog.remove(0);
+                            mailbox.put(md);
+                        }
+                        break;
                     }
 
+                    case "GET_DIAGNOSIS": {
+                        boolean wantPositive = Math.random() < POSITIVE_PROBABILITY;
+
+                        ArrayList<Diagnostic> primary = wantPositive ? positiveDiagnostics : negativeDiagnostics;
+                        ArrayList<Diagnostic> secondary = wantPositive ? negativeDiagnostics : positiveDiagnostics;
+
+                        ArrayList<Diagnostic> chosen = null;
+
+                        if (primary != null && !primary.isEmpty()) {
+                            chosen = primary;
+                        } else if (secondary != null && !secondary.isEmpty()) {
+                            chosen = secondary;
+                        }
+
+                        if (chosen != null) {
+                            Diagnostic take = chosen.remove(0);
+                            doctorsDiagnostics.put(Integer.parseInt(msg.content), take);
+                            msg.replyTo.put(new Message("CASE_ASSIGNED", "OK", null));
+                        } else {
+                            backlog.add(msg);
+                        }
+                        break;
+                    }
+
+                    case "FINAL_DIAGNOSIS": {
+                        Diagnostic diagnosis = doctorsDiagnostics.remove(Integer.parseInt(msg.content));
+                        if (diagnosis != null) {
+
+                            double randomValue = Math.random();
+                            double inconclusiveValue = Math.random();
+
+                            boolean shouldChange = randomValue < CHANGE_PROBABILITY;
+                            boolean isInconclusive = inconclusiveValue < INCONCLUSIVE_PROBABILITY;
+
+                            if (isInconclusive) {
+                                diagnosis.setPositive("INCONCLUSIVE");
+                            } else if (shouldChange) {
+                                if (diagnosis.getDiagnosis().equals(MALIGNO)) {
+                                    diagnosis.setPositive(BENIGNO);
+                                } else {
+                                    diagnosis.setPositive(MALIGNO);
+                                }
+                            }
+                            BlockingQueue<Message> mb = diagnosis.getReplyTo();
+                            mb.put(new Message("FINAL_DIAGNOSIS", diagnosis.getDiagnosis(), null));
+                        }
+                        break;
+                    }
+
+                    default:
+                        System.out.println("⚠️ Unknown message type: " + msg.type);
                 }
 
             }

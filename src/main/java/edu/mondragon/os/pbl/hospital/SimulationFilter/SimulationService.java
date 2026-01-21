@@ -21,7 +21,7 @@ public class SimulationService {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean backendAvailable = true;
 
-    private static final String API_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/events";
+ private static final String API_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/events";
     private static final String FINAL_URL = "https://node-red-591094411846.europe-west1.run.app/api/sim/final";
 
     private static final String API_KEY = "API_KEY_DEL_ADMIN";
@@ -36,6 +36,7 @@ public class SimulationService {
 
         this.restTemplate = new RestTemplate(factory);
     }
+
 
     public void postSimEvent(String type, int id, String action, long timestamp) {
         if (!backendAvailable) {
