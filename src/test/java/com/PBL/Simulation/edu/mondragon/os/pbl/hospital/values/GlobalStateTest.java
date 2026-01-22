@@ -1,4 +1,4 @@
-package com.PBL.Simulation.values;
+package com.PBL.Simulation.edu.mondragon.os.pbl.hospital.values;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -54,12 +54,10 @@ public class GlobalStateTest {
             state.update(15, 2, 3);
         });
 
-        // Arrancan todos a la vez
         latch.countDown();
         executor.shutdown();
         executor.awaitTermination(2, java.util.concurrent.TimeUnit.SECONDS);
 
-        // El estado final debe ser uno de los updates completos (no mezclado)
         boolean valid =
                 (state.getNumPatients() == 5  && state.getNumDoctors() == 1 && state.getNumMachines() == 2) ||
                 (state.getNumPatients() == 20 && state.getNumDoctors() == 4 && state.getNumMachines() == 6) ||

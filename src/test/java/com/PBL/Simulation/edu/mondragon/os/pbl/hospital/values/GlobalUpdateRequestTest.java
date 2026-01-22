@@ -1,4 +1,4 @@
-package com.PBL.Simulation.values;
+package com.PBL.Simulation.edu.mondragon.os.pbl.hospital.values;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,4 +1,4 @@
-package com.PBL.Simulation.simulationfilter;
+package com.PBL.Simulation.edu.mondragon.os.pbl.hospital.simulationfilter;
 
 import static org.junit.jupiter.api.Assertions.*;
 

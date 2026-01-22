@@ -1,4 +1,4 @@
-package com.PBL.Simulation.simulationfilter;
+package com.PBL.Simulation.edu.mondragon.os.pbl.hospital.simulationfilter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +20,6 @@ public class SimTimeTest {
 
     @Test
     void testOneSimulatedMinute() {
-        // 1 segundo real = 1 minuto simulado
         long oneSecondInNanos = 1_000_000_000L;
 
         SimTime simTime = new SimTime(oneSecondInNanos);
@@ -32,7 +31,6 @@ public class SimTimeTest {
 
     @Test
     void testOneSimulatedHour() {
-        // 60 segundos reales = 60 minutos simulados = 1 hora
         long sixtySecondsInNanos = 60L * 1_000_000_000L;
 
         SimTime simTime = new SimTime(sixtySecondsInNanos);
@@ -44,7 +42,6 @@ public class SimTimeTest {
 
     @Test
     void testHourAndMinutes() {
-        // 1h 15min simulados = 75 segundos reales
         long seventyFiveSecondsInNanos = 75L * 1_000_000_000L;
 
         SimTime simTime = new SimTime(seventyFiveSecondsInNanos);

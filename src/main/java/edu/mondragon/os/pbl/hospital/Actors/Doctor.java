@@ -40,28 +40,20 @@ public class Doctor extends Thread {
 
             while (!Thread.interrupted()) {
 
-                // Simulates time until it “enters its turn”
-                // 💤 Doctor rest / idle time before requesting work
+
                 log("😴", "REST", "Resting...");
                 Thread.sleep((long) (Math.random() * 7000));
-                // 0.8 – 1.5 s → natural time between tasks
 
-                // 1️⃣ Requests a case/diagnosis to review
                 log("📥", "REQUEST", "Requests a case to review");
-                // ⏳ Administrative wait / case assignment
+
                 diagnosticUnit.put(new DiagnosticUnitMessage("GET_DIAGNOSIS", "" + id, myMailbox));
 
-                // 0.3 – 0.7 s → queue / internal assignment
 
-                // 2️⃣ Waits for the case to be assigned
                 Message m1 = myMailbox.take();
                 log("🔔", "ASSIGNED", "Case received: " + (m1.content != null ? m1.content : "(no details)"));
 
-                // 🧠 Actual medical review
                 Thread.sleep(1200 + (long) (Math.random() * 10000));
-                // 1.2 – 2.2 s → diagnosis analysis
 
-                // 3️⃣ Launches the final phase
                 log("👨‍⚕️", "REVIEW", "Sending final diagnosis");
                 Thread.sleep((long) (Math.random() * 4000));
 

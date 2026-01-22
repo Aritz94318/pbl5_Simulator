@@ -1,4 +1,4 @@
-package com.PBL.Simulation.room;
+package com.PBL.Simulation.edu.mondragon.os.pbl.hospital.room;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,11 +25,11 @@ class DiagnosticUnitTest {
     @AfterEach
     void tearDown() throws Exception {
         if (duThread != null && duThread.isAlive()) {
-            // STOP limpio
+           
             duMailbox.put(new DiagnosticUnitMessage("STOP", "", null));
             duThread.join(500);
 
-            // Por si acaso
+           
             if (duThread.isAlive()) {
                 duThread.interrupt();
                 duThread.join(500);
@@ -61,7 +61,6 @@ class DiagnosticUnitTest {
         Message ai = await(patientMailbox);
         assertEquals("AI_RESULT", ai.type);
 
-        // No dependemos de random: solo comprobamos que es uno de los valores válidos
         assertTrue(
                 "MALIGNANT".equals(ai.content) || "BENIGN".equals(ai.content),
                 "AI_RESULT content should be MALIGNANT or BENIGN, got=" + ai.content);
@@ -76,7 +75,6 @@ class DiagnosticUnitTest {
 
         duMailbox.put(new DiagnosticUnitMessage("GET_DIAGNOSIS", "42", doctorMailbox));
 
-        // Como no hay diagnósticos aún, debe quedarse en backlog => no responde
         assertNull(doctorMailbox.poll(200, TimeUnit.MILLISECONDS));
     }
 
@@ -88,19 +86,14 @@ class DiagnosticUnitTest {
         BlockingQueue<Message> doctorMailbox = new LinkedBlockingQueue<>();
         BlockingQueue<Message> patientMailbox = new LinkedBlockingQueue<>();
 
-        // 1) Doctor pide diagnóstico cuando no hay => backlog
         duMailbox.put(new DiagnosticUnitMessage("GET_DIAGNOSIS", "7", doctorMailbox));
         assertNull(doctorMailbox.poll(200, TimeUnit.MILLISECONDS));
 
-        // 2) Llega una mamografía => se crea un Diagnostic y además se libera backlog
         duMailbox.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "patientX", patientMailbox));
 
-        // El paciente recibe AI_RESULT seguro
         Message ai = await(patientMailbox);
         assertEquals("AI_RESULT", ai.type);
 
-        // Y el doctor ahora debería recibir CASE_ASSIGNED (porque se reinyectó el
-        // backlog)
         Message assigned = await(doctorMailbox);
         assertEquals("CASE_ASSIGNED", assigned.type);
         assertEquals("OK", assigned.content);
@@ -114,25 +107,21 @@ class DiagnosticUnitTest {
         BlockingQueue<Message> doctorMailbox = new LinkedBlockingQueue<>();
         BlockingQueue<Message> patientMailbox = new LinkedBlockingQueue<>();
 
-        // Aseguramos que hay al menos un diagnostic:
+        
         duMailbox.put(new DiagnosticUnitMessage("PASS MAMOGRAPH IN AI", "patientX", patientMailbox));
         Message ai = await(patientMailbox);
         assertEquals("AI_RESULT", ai.type);
 
-        // Doctor pide caso y debe recibir CASE_ASSIGNED (como hay 1 diagnostic, debería
-        // asignar)
+        
         duMailbox.put(new DiagnosticUnitMessage("GET_DIAGNOSIS", "99", doctorMailbox));
         Message assigned = await(doctorMailbox);
         assertEquals("CASE_ASSIGNED", assigned.type);
 
-        // Doctor pide FINAL_DIAGNOSIS para su id=99
         duMailbox.put(new DiagnosticUnitMessage("FINAL_DIAGNOSIS", "99", new LinkedBlockingQueue<>()));
 
-        // El resultado final se manda al replyTo del Diagnostic (patientMailbox)
         Message finalMsg = await(patientMailbox);
         assertEquals("FINAL_DIAGNOSIS", finalMsg.type);
 
-        // Puede ser MALIGNANT, BENIGN o INCONCLUSIVE (depende de random)
         assertTrue(
                 "MALIGNANT".equals(finalMsg.content) ||
                         "BENIGN".equals(finalMsg.content) ||
