@@ -15,7 +15,7 @@ import edu.mondragon.os.pbl.hospital.mailbox.HospitalMessage;
 import edu.mondragon.os.pbl.hospital.mailbox.Message;
 import edu.mondragon.os.pbl.hospital.room.Hospital;
 
-class HospitalTest_RoomOnly {
+class HospitalTest {
 
     private BlockingQueue<HospitalMessage> hospitalMailbox;
     private Thread hospitalThread;

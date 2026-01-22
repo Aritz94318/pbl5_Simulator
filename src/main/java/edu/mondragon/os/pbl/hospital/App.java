@@ -46,13 +46,13 @@ public class App {
         service=new SimulationService();
 
         for (int i = 0; i < numPatients; i++) {
-            patients[i] = new Patient(i + 1, apServer, hoServer, waServer, duServer, service);
+            patients[i] = new Patient(i , apServer, hoServer, waServer, duServer, service);
         }
         for (int i = 0; i < numDoctors; i++) {
-            doctors[i] = new Doctor(i+1, duServer, service);
+            doctors[i] = new Doctor(i, duServer, service);
         }
         for (int i = 0; i < numMachines; i++) {
-            machines[i] = new Machine(i+1, hoServer,waServer, service);
+            machines[i] = new Machine(i, hoServer,waServer, service);
         }
         appoiment = new Thread(new Appointment(apServer));
         waitingRoom = new Thread(new WaitingRoom(waServer));
