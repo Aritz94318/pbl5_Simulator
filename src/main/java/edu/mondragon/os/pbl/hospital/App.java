@@ -49,10 +49,10 @@ public class App {
             patients[i] = new Patient(i + 1, apServer, hoServer, waServer, duServer, service);
         }
         for (int i = 0; i < numDoctors; i++) {
-            doctors[i] = new Doctor(i, duServer, service);
+            doctors[i] = new Doctor(i+1, duServer, service);
         }
         for (int i = 0; i < numMachines; i++) {
-            machines[i] = new Machine(i, hoServer,waServer, service);
+            machines[i] = new Machine(i+1, hoServer,waServer, service);
         }
         appoiment = new Thread(new Appointment(apServer));
         waitingRoom = new Thread(new WaitingRoom(waServer));

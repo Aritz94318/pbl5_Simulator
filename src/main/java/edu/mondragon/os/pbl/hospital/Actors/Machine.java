@@ -31,7 +31,7 @@ public class Machine extends Thread {
 
     private void log(String emoji, String phase, String msg) throws InterruptedException {
         long ms = System.currentTimeMillis() - t0;
-        String text = emoji + " [" + phase + "]" + msg;
+        String text = emoji + " " + msg;
         service.postList("MACHINE", id, text, ms);
         System.out.printf("[%6dms] %s [%s] %-14s %s%n",
                 ms, emoji, getName(), phase, msg);
